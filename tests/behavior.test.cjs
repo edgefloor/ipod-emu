@@ -60,3 +60,21 @@ test('wheel ticks and button presses use separate feedback paths', () => {
 test('Play in Songs starts the highlighted song even when another track is active', () => {
   assert.equal(run(`(() => {let selected;const songs=[{id:1,trackName:'One'},{id:2,trackName:'Two'}];const d={current:{id:99},play:(queue,index)=>{selected=queue[index].id;}};const screen=new SongsScreen(d,songs,'Songs');screen.sel=1;screen.onPlay();return selected;})()`), 2);
 });
+
+test('slow continuous wheel movement accumulates into navigation steps', () => {
+  const steps = run(`(() => {
+    const handlers={};let steps=0;
+    const wheel={addEventListener:(name,fn)=>handlers[name]=fn,getBoundingClientRect:()=>({left:0,top:0,width:350,height:350}),classList:{add(){},remove(){}},setPointerCapture(){},dispatchEvent:event=>handlers[event.type]?.(event)};
+    const old=document.getElementById;document.getElementById=()=>wheel;
+    globalThis.CustomEvent=class {constructor(type,options){this.type=type;this.detail=options.detail;}};
+    try {
+      attachWheel({audio:{ensureContext(){}},wheelStepBy:step=>steps+=step});
+      const pointer=angle=>({pointerId:1,button:0,clientX:175+140*Math.cos(angle*Math.PI/180),clientY:175+140*Math.sin(angle*Math.PI/180)});
+      handlers.pointerdown(pointer(0));
+      for(let angle=.5;angle<=90;angle+=.5) handlers.pointermove(pointer(angle));
+      handlers.pointerup(pointer(90));
+      return steps;
+    } finally {document.getElementById=old;}
+  })()`);
+  assert.ok(steps > 0, `Expected navigation after a 90-degree drag, received ${steps} steps`);
+});

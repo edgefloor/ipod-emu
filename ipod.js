@@ -1355,6 +1355,7 @@ function attachWheel(device) {
   let lockedDir = null;
   let lockedTravel = 0;
   let engaged = false;
+  let suppressClick = false;
 
   const metrics = (event) => {
     const r = wheel.getBoundingClientRect();
@@ -1368,7 +1369,8 @@ function attachWheel(device) {
   const angleOf = (event, cx, cy) => Math.atan2(event.clientY - cy, event.clientX - cx);
 
   wheel.addEventListener("pointerdown", (event) => {
-    if (event.button) return;
+    if (event.button || pointer !== null || event.isPrimary === false) return;
+    suppressClick = false;
     device.audio.ensureContext();
     pointer = event.pointerId;
     const { cx, cy } = metrics(event);
@@ -1390,10 +1392,9 @@ function attachWheel(device) {
     let delta = angle - lastAngle;
     while (delta > Math.PI) delta -= Math.PI * 2;
     while (delta < -Math.PI) delta += Math.PI * 2;
-    lastAngle = angle;
-
     const degrees = Math.abs(delta * (180 / Math.PI));
-    if (degrees < 1.5) return; // sub-scaling jitter, as before commit
+    if (degrees < 1.5) return; // accumulate small movements from the last accepted angle
+    lastAngle = angle;
 
     // engage the drag only after real travel; before that the press may
     // still turn out to be a button click
@@ -1402,6 +1403,7 @@ function attachWheel(device) {
       if (lockedTravel < WHEEL_ENGAGE_DEGREES) return;
       lockedTravel = 0;
       engaged = true;
+      suppressClick = true;
       try {
         wheel.setPointerCapture(pointer);
       } catch {
@@ -1411,6 +1413,7 @@ function attachWheel(device) {
       return;
     }
 
+    if (event.cancelable) event.preventDefault();
     const dir = delta > 0 ? 1 : -1;
     if (lockedDir === null) {
       lockedDir = dir; // first decisive direction locks, like real hardware
@@ -1423,14 +1426,16 @@ function attachWheel(device) {
       return;
     }
     lockedTravel += degrees;
-    if (lockedTravel < WHEEL_STEP_DEGREES) return;
-    lockedTravel -= WHEEL_STEP_DEGREES;
-    wheel.dispatchEvent(
-      new CustomEvent("wheelscroll", { detail: { step: lockedDir, degrees: WHEEL_STEP_DEGREES, speed: 1 } })
-    );
+    while (lockedTravel >= WHEEL_STEP_DEGREES) {
+      lockedTravel -= WHEEL_STEP_DEGREES;
+      wheel.dispatchEvent(
+        new CustomEvent("wheelscroll", { detail: { step: lockedDir, degrees: WHEEL_STEP_DEGREES, speed: 1 } })
+      );
+    }
   });
 
-  const endDrag = () => {
+  const endDrag = (event) => {
+    if (event.pointerId !== pointer) return;
     pointer = null;
     lastAngle = null;
     lockedDir = null;
@@ -1439,6 +1444,13 @@ function attachWheel(device) {
     wheel.classList.remove("dragging");
   };
 
+  // A completed touch drag may still synthesize a click on its starting button.
+  wheel.addEventListener("click", event => {
+    if (!suppressClick || event.detail === 0) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    suppressClick = false;
+  }, true);
   wheel.addEventListener("pointerup", endDrag);
   wheel.addEventListener("pointercancel", endDrag);
   wheel.addEventListener("lostpointercapture", endDrag);
@@ -1495,9 +1507,20 @@ function attachKeyboard(device) {
   });
 }
 
+/* Fit the whole device and controls, including when mobile browser chrome changes. */
+function fitDevice() {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const reserve = width >= 640 && height >= 850 ? 220 : 96;
+  const scale = Math.max(0.2, Math.min(1, (width - 40) / 415, (height - reserve) / 692));
+  document.documentElement.style.setProperty("--device-scale", String(scale));
+}
+
 /* ------------------------------------------------------------------ boot -- */
 
 document.addEventListener("DOMContentLoaded", () => {
+  fitDevice();
+  window.addEventListener("resize", fitDevice);
   const device = new Ipod();
   attachWheel(device);
   attachButtons(device);

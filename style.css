@@ -32,6 +32,7 @@
 body {
   margin: 0;
   min-height: 100vh;
+  min-height: 100svh;
   display: grid;
   place-items: center;
   background: radial-gradient(1000px 700px at 50% 30%, #232527 0%, #131415 60%, #0b0c0d 100%);
@@ -39,15 +40,17 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-.stage { text-align: center; padding: 24px 0; }
+.stage { width: 100%; min-width: 0; text-align: center; padding: 20px 16px; }
 
 .hint {
-  margin: 170px 0 0;
+  max-width: 420px;
+  margin: 20px auto 0;
   color: #5b5f63;
   font-size: 11px;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.08em;
+  line-height: 1.6;
   text-transform: uppercase;
-  white-space: nowrap;
+  text-wrap: balance;
 }
 
 /* ---- device ---- */
@@ -57,10 +60,15 @@ body {
   position: relative;
   width: var(--device-w);
   margin: 0 auto;
-  zoom: 0.72;
+  zoom: var(--device-scale, 0.72);
 }
-@media (min-height: 900px) { .ipod-shadow { zoom: 0.85; } }
-@media (min-height: 1080px) { .ipod-shadow { zoom: 1; } }
+@media (max-width: 639px), (max-height: 849px) {
+  .ipod { -webkit-box-reflect: initial !important; }
+  .ipod-shadow::before { display: none; }
+}
+@media (min-width: 640px) and (min-height: 850px) {
+  .hint { margin-top: 140px; }
+}
 
 /* floor shadow / reflection (cross-browser) */
 .ipod-shadow::before {
@@ -276,11 +284,7 @@ body {
   overflow: hidden;
 }
 
-/* Keep the stepped glyph outlines; only a trace of LCD ink spread. */
-.content,
-.statusbar {
-  filter: blur(0.12px);
-}
+/* Keep LCD glyphs in the text renderer; filters rasterize and soften them on mobile. */
 
 .lcd-grid {
   position: absolute;
@@ -591,7 +595,7 @@ body {
   margin: 0;
   color: inherit;
   cursor: pointer;
-  touch-action: manipulation;
+  touch-action: none;
   -webkit-tap-highlight-color: transparent;
 }
 
