@@ -890,3 +890,5 @@ body:has(#wake-screen) .stage { visibility: hidden; }
 .ambient-settings-panel p { margin: 12px 0 0; }
 .ambient-settings-panel p + button { margin-top: 14px; }
 .milkdrop-canvas { display: block; width: 100%; height: 100%; opacity: .65; }
+.ambient-settings-panel .visualizer-style-label { margin-top: 16px; }
+.ambient-settings-panel .visualizer-credit { margin-top: 5px; color: #afbdc4; font-size: 11px; }

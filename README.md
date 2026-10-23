@@ -67,7 +67,12 @@ the timeout. Clicker silences both wheel and button feedback.
 
 Open **Background → MilkDrop → Enable music reaction** in desktop Chrome or Edge.
 In the browser sharing prompt, select this player's tab and enable **Share tab audio**.
-The shared audio drives a MilkDrop preset through Butterchurn. The capture stays in
+The shared audio drives the selected visual style through Butterchurn.
+Choose Aurora, Nebula, Serpentine, Liquid, or Cubist under **Style**. Changes
+blend into the next effect without restarting tab sharing. Aurora and Nebula
+are credited community presets; the ribbon, fluid-line, and spectrum-bar
+effects are original presets inspired by the variety of classic visualizers.
+These are not the proprietary G-Force or Aeon plugins. The capture stays in
 this browser; it is not recorded, uploaded, or replayed. The browser also requires
 a video track for tab sharing, but the visualizer only processes audio.
 

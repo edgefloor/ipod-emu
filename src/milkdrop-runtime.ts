@@ -1,9 +1,13 @@
 import bundle from 'butterchurn';
 const butterchurn = bundle.default;
-import preset from 'butterchurn-presets/presets/converted/Geiss - Spiral Artifact.json';
+import type { VisualizerStyle } from './visualizer-styles';
+import aurora from 'butterchurn-presets/presets/converted/Geiss - Aurora.json';
+import nebula from "butterchurn-presets/presets/converted/TonyMilkdrop - Magellan's Nebula [Flexi - fancy + $this shall not retain].json";
+import { serpentine, liquid, cubist } from './visualizer-presets';
+const presets: Record<VisualizerStyle, unknown> = { aurora, nebula, serpentine, liquid, cubist };
 
 /** Owns all GPU and audio resources for one mounted background. */
-export function createMilkDrop(canvas: HTMLCanvasElement, failed: () => void) {
+export function createMilkDrop(canvas: HTMLCanvasElement, failed: () => void, style: VisualizerStyle = 'aurora') {
   const context = new AudioContext();
   const gl = canvas.getContext('webgl2');
   if (!gl) { void context.close(); throw new Error('WebGL 2 is unavailable.'); }
@@ -16,7 +20,7 @@ export function createMilkDrop(canvas: HTMLCanvasElement, failed: () => void) {
     visualizer = butterchurn.createVisualizer(context, canvas, {
       width: 640, height: 480, pixelRatio: 1, textureRatio: 1, meshWidth: 32, meshHeight: 24
     });
-    visualizer.loadPreset(preset, 0);
+    visualizer.loadPreset(presets[style], 0);
   } catch (error) { void context.close(); gl.getExtension('WEBGL_lose_context')?.loseContext(); throw error; }
   const cancel = () => { clearTimeout(timer); cancelAnimationFrame(frame); };
   const render = () => {
@@ -46,6 +50,12 @@ export function createMilkDrop(canvas: HTMLCanvasElement, failed: () => void) {
   window.addEventListener('resize', resize);
   resize();
   return {
+    setStyle(style: VisualizerStyle) {
+      try {
+        visualizer.loadPreset(presets[style], paused ? 0 : 1.5);
+        if (paused && !document.hidden) visualizer.render();
+      } catch { failed(); }
+    },
     resumeAudio: () => context.resume(),
     connect(capture: MediaStream, onEnded: () => void) {
       stopCapture();

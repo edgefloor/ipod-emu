@@ -1,10 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { visualizerStyles, type VisualizerStyle } from './visualizer-styles';
 import type { MilkDrop } from './milkdrop-runtime';
 import CRTWarp from './components/CRTWarp';
 
 function Background() {
   const [mode, setMode] = useState<'crt' | 'milkdrop' | 'off'>('crt');
+  const [style, setStyle] = useState<VisualizerStyle>('aurora');
+  const styleRef = useRef(style);
+  styleRef.current = style;
+  const selectedStyle = visualizerStyles.find(item => item.id === style)!;
   const [message, setMessage] = useState('');
   const [ready, setReady] = useState(false);
   const [capturing, setCapturing] = useState(false);
@@ -30,7 +35,7 @@ function Background() {
       if (cancelled) return;
       runtime.current = module.createMilkDrop(target, () => {
         setMode('off'); setMessage('The graphics renderer stopped. Select MilkDrop to try again.');
-      });
+      }, styleRef.current);
       runtime.current.pause(paused || reduced);
       setReady(true); setMessage('Choose this tab and enable “Share tab audio” in the browser prompt.');
     }).catch(() => { if (!cancelled) { setMode('off'); setMessage('MilkDrop could not start. Your browser needs WebGL 2.'); } });
@@ -95,7 +100,15 @@ function Background() {
             <option value="crt">CRT</option><option value="milkdrop">MilkDrop</option><option value="off">Off</option>
           </select>
           {mode === 'milkdrop' && <>
-            <p>Winamp-style visuals for your YouTube music.</p>
+            <label htmlFor="visualizer-style" className="visualizer-style-label">Style</label>
+            <select id="visualizer-style" value={style} onChange={event => {
+              const next = event.target.value as VisualizerStyle;
+              setStyle(next); runtime.current?.setStyle(next);
+            }}>
+              {visualizerStyles.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+            </select>
+            <p>{selectedStyle.description}</p>
+            <p className="visualizer-credit">{selectedStyle.credit}</p>
             {typeof navigator.mediaDevices?.getDisplayMedia === 'function' ? <>
               <button type="button" disabled={!ready || pending} onClick={capturing ? () => {
                 runtime.current?.stopCapture(); setCapturing(false); setMessage('Sharing stopped. Ambient visuals are still available.');
