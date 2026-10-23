@@ -10,7 +10,7 @@ function songsForIds(deck: Library, ids: Array<Track["id"]> = []) {
 }
 
 function playlistRows(device: Ipod) {
-  return device.deck.playlists.map((playlist) => ({
+  const rows = device.deck.playlists.map((playlist) => ({
     title: playlist.name,
     chevron: true,
     onSelect: () => {
@@ -18,6 +18,14 @@ function playlistRows(device: Ipod) {
       device.push(new SongsScreen(device, songsForIds(device.deck, playlist.songIds), playlist.name));
     }
   }));
+  if (device.youtubePlayer) rows.unshift({
+    title: "YouTube playlist", chevron: true,
+    onSelect: () => device.push(new ListScreen(device, "YouTube", device.sequence.map((track, index) => ({
+      title: track.trackName,
+      onSelect: () => { device.youtubePlayer?.playAt(index); device.push(new NowPlayingScreen(device)); }
+    }))))
+  });
+  return rows;
 }
 
 export class MainMenuScreen extends MenuScreen {
@@ -42,7 +50,8 @@ export class BrowserScreen extends MenuScreen {
       { title: "Music", chevron: true, onSelect: () => device.push(new MusicScreen(device)) },
       { title: "Extras", chevron: true, onSelect: () => device.push(new ExtrasScreen(device)) },
       { title: "Shuffle Songs", onSelect: () => device.shuffleSongs() },
-      { title: "Backlight", wake: false, onSelect: () => device.toggleBacklight() }
+      { title: "Backlight", wake: false, onSelect: () => device.toggleBacklight() },
+      { title: "YouTube", chevron: true, onSelect: () => device.openYouTube() }
     ]);
   }
 }

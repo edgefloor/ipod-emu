@@ -29,6 +29,7 @@ ES module bundle; opening it directly from disk is not supported.
 - Songs, playlists, artists, albums, genres, and composers.
 - Now Playing with track position, progress, volume, shuffle, and repeat.
 - Clock and Brick with destructible bricks, lives, and successive boards.
+- YouTube playlist loading with a visible embedded player and iPod playback controls.
 - Optional Apple Music library and streaming through MusicKit v3.
 - Local preferences for volume, clicker, shuffle, repeat, backlight, contrast, and startup volume.
 - Separate backlight and sleep timer choice screens with firmware-derived ordering.
@@ -61,6 +62,25 @@ the player fully usable. Motion readings stay in the browser.
 In Brick, Select launches or restarts, Play/Pause pauses, and Left/Right move
 the paddle. Browser → Backlight toggles lighting immediately; Settings controls
 the timeout. Clicker silences both wheel and button feedback.
+
+## YouTube playlists
+
+Open **Browser → YouTube**, paste a playlist link or ID, and choose **Load playlist**.
+Use a public or embeddable unlisted playlist. No API key is required. The visible
+YouTube player handles streaming; tap its Play button if your browser blocks a
+start from the iPod controls. Private, age-restricted, region-blocked, or
+embedding-disabled videos may not play.
+
+Play/Pause, Next, Previous, volume, shuffle, and repeat control the YouTube player.
+The loaded queue appears in **Playlists → YouTube playlist**. Queue entries use
+numbered labels; video titles remain visible in YouTube's player. **Stop & close**
+ends the YouTube session. Selecting a demo or Apple Music song also switches away.
+Playlist links are not persisted. Background and locked-screen playback are not
+guaranteed by the embedded player.
+
+The integration uses the [YouTube IFrame API](https://developers.google.com/youtube/iframe_api_reference).
+YouTube is contacted only after submitting a playlist. The embed stays visible
+at a minimum of 200 pixels high, following YouTube's player requirements.
 
 ## Apple Music
 

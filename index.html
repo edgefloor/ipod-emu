@@ -77,6 +77,21 @@
     <p role="status" aria-live="polite">Demo music is active.</p>
     <div class="connection-actions"><button data-action="refresh" disabled>Refresh library</button><button data-action="disconnect" disabled>Disconnect &amp; use demo</button></div>
   </dialog>
+  <dialog id="youtube-dialog" aria-labelledby="youtube-title">
+    <div class="connection-heading"><h1 id="youtube-title">YouTube playlist</h1><button type="button" data-action="close">Close</button></div>
+    <form>
+      <label for="youtube-link">Playlist link or ID</label>
+      <input id="youtube-link" type="text" placeholder="https://www.youtube.com/playlist?list=…" required autocomplete="off">
+      <p>Load a public or unlisted playlist. Videos play in a visible YouTube player, with the iPod controlling playback. Some videos cannot be embedded.</p>
+      <button type="submit">Load playlist</button>
+      <p role="status" aria-live="polite">No API key needed. YouTube loads only when you submit a playlist.</p>
+    </form>
+  </dialog>
+  <section id="youtube-dock" aria-label="YouTube player" hidden>
+    <div class="youtube-heading"><span>YouTube</span><button type="button">Stop &amp; close</button></div>
+    <div class="youtube-video"></div>
+    <p role="status" aria-live="polite"></p>
+  </section>
   <script type="module" src="app.js"></script>
 </body>
 </html>

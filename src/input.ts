@@ -166,10 +166,10 @@ export function attachKeyboard(device: Ipod) {
 
 /* Keep mobile geometry fixed while browser chrome or the keyboard changes height. */
 let mobileViewport: { width: number; height: number } | null = null;
-export function fitDevice() {
+export function fitDevice(force: boolean | Event = false) {
   const width = window.innerWidth;
   const mobile = width < 640 || window.matchMedia("(pointer: coarse)").matches;
-  if (mobile && mobileViewport?.width === width) return;
+  if (force !== true && mobile && mobileViewport?.width === width) return;
   const height = mobile
     ? document.querySelector("#viewport-size")?.getBoundingClientRect().height || window.innerHeight
     : window.innerHeight;
@@ -178,7 +178,8 @@ export function fitDevice() {
   const padding = stage ? window.getComputedStyle(stage) : null;
   const horizontal = padding ? (parseFloat(padding.paddingLeft) || 0) + (parseFloat(padding.paddingRight) || 0) + 8 : 40;
   const vertical = padding ? (parseFloat(padding.paddingTop) || 0) + (parseFloat(padding.paddingBottom) || 0) : 40;
-  const reserve = mobile ? vertical + 44 : width >= 640 && height >= 850 ? 220 : 96;
+  const youtubeReserve = document.body.classList.contains('youtube-active') && width < 1100 ? 260 : 0;
+  const reserve = mobile ? vertical + 44 : youtubeReserve + (width >= 640 && height >= 850 ? 220 : 96);
   const scale = Math.max(0.2, Math.min(1, (width - horizontal) / 415, (height - reserve) / 692));
   document.documentElement.style.setProperty("--layout-height", mobile ? `${height}px` : "100svh");
   document.documentElement.style.setProperty("--device-scale", String(scale));

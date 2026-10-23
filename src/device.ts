@@ -5,6 +5,7 @@ import { $ } from './dom';
 import { TRACK_SECONDS, REPEAT, BACKLIGHT_ALWAYS, REPEAT_ORDER } from './constants';
 import { loadSettings, persist, DEFAULTS, SETTINGS_KEY } from './settings';
 import type { Settings, Track, Library, Playlist } from './types';
+import type { YouTubePlayer } from './integrations/youtube';
 import type { AppleMusicPlayer } from './integrations/music-player';
 import { MainMenuScreen, SongsScreen } from './screens/library';
 import { NowPlayingScreen } from './screens/now-playing';
@@ -22,6 +23,9 @@ export class Ipod {
   sleepMinutes = -1;
   sleepDeadline: number | null = null;
   dimTimer: ReturnType<typeof setTimeout> | undefined;
+  youtubePlayer: YouTubePlayer | null = null;
+  openYouTube: () => void = () => {};
+  closeYouTube: () => void = () => {};
   applePlayer: AppleMusicPlayer | null = null;
   openAppleMusic: () => void = () => {};
   loadApplePlaylist: (playlist: Playlist) => void = () => {};
@@ -42,11 +46,12 @@ export class Ipod {
   }
 
   /* ---- audio state ---- */
-  get player() { return this.applePlayer || this.audio; }
-  get duration() { return this.applePlayer ? this.applePlayer.duration : TRACK_SECONDS; }
+  get player() { return this.youtubePlayer || this.applePlayer || this.audio; }
+  get duration() { return this.youtubePlayer?.duration ?? (this.applePlayer ? this.applePlayer.duration : TRACK_SECONDS); }
   get elapsed() { return this.current ? Math.min(this.player.elapsed, this.duration) : 0; }
 
   useLibrary(deck: Library) {
+    this.closeYouTube();
     this.deck = deck;
     this.current = null;
     this.sequence = [];
@@ -125,7 +130,8 @@ export class Ipod {
   toggleSetting(key: "shuffle" | "clicker") {
     if (key === "shuffle") {
       this.settings.shuffle = !this.settings.shuffle;
-      if (this.applePlayer) this.applePlayer.modes();
+      if (this.youtubePlayer) this.youtubePlayer.modes();
+      else if (this.applePlayer) this.applePlayer.modes();
       else this.setSequence(this.sourceOfCurrent(), this.current);
     } else if (key === "clicker") {
       this.settings.clicker = !this.settings.clicker;
@@ -137,7 +143,7 @@ export class Ipod {
 
   cycleRepeat() {
     this.settings.repeat = REPEAT_ORDER[(REPEAT_ORDER.indexOf(this.settings.repeat) + 1) % REPEAT_ORDER.length];
-    this.applePlayer?.modes();
+    (this.youtubePlayer || this.applePlayer)?.modes();
     persist(this.settings);
     this.top()?.render();
   }
@@ -166,7 +172,7 @@ export class Ipod {
     this.applyContrast();
     this.audio.clicker = this.settings.clicker;
     this.player.setVolume(this.settings.volume);
-    this.applePlayer?.modes();
+    (this.youtubePlayer || this.applePlayer)?.modes();
     try {
       localStorage.removeItem(SETTINGS_KEY);
     } catch {
@@ -186,6 +192,7 @@ export class Ipod {
   }
 
   play(tracks: Track[], index: number) {
+    this.closeYouTube();
     const selected = tracks[index];
     if (!selected) return;
     if (this.applePlayer) {
@@ -207,6 +214,7 @@ export class Ipod {
   }
 
   stepTrack(dir: number) {
+    if (this.youtubePlayer) { this.youtubePlayer.step(dir); return; }
     if (this.applePlayer) { this.applePlayer.step(dir); return; }
     if (!this.current || !this.sequence.length) return;
     if (dir < 0 && this.audio.elapsed > 3) {
@@ -231,6 +239,7 @@ export class Ipod {
   }
 
   restart() {
+    if (this.youtubePlayer) { this.youtubePlayer.restart(); return; }
     if (this.applePlayer) { this.applePlayer.restart(); return; }
     if (!this.current) return;
     this.audio.boot(this.current);
@@ -273,7 +282,7 @@ export class Ipod {
   /* ---- render frame ---- */
   frame() {
     this.checkSleepTimer();
-    if (!this.applePlayer && this.current && this.elapsed >= TRACK_SECONDS) {
+    if (!this.youtubePlayer && !this.applePlayer && this.current && this.elapsed >= TRACK_SECONDS) {
       this.audio.stop();
       this.endTrack();
     }

@@ -734,19 +734,19 @@ body {
 }
 
 /* Account setup stays outside the small hardware display. */
-#apple-music { box-sizing: border-box; width: min(480px, calc(100% - 32px)); max-height: calc(100% - 32px); overflow: auto; padding: 28px; border: 1px solid #c9c9c5; border-radius: 16px; background: #f7f7f3; color: #282a27; box-shadow: 0 24px 80px #0004; font: 14px/1.5 system-ui, sans-serif; }
-#apple-music::backdrop { background: #15191488; backdrop-filter: blur(6px); }
+:is(#apple-music, #youtube-dialog) { box-sizing: border-box; width: min(480px, calc(100% - 32px)); max-height: calc(100% - 32px); overflow: auto; padding: 28px; border: 1px solid #c9c9c5; border-radius: 16px; background: #f7f7f3; color: #282a27; box-shadow: 0 24px 80px #0004; font: 14px/1.5 system-ui, sans-serif; }
+:is(#apple-music, #youtube-dialog)::backdrop { background: #15191488; backdrop-filter: blur(6px); }
 .connection-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-#apple-music h1 { font-size: 24px; letter-spacing: -.6px; margin: 0; }
-#apple-music label { display: block; font-weight: 600; margin: 24px 0 8px; }
-#apple-music textarea { box-sizing: border-box; width: 100%; resize: vertical; padding: 12px; border: 1px solid #b7bab2; border-radius: 6px; font: 12px/1.5 ui-monospace, monospace; background: #fff; color: #252923; }
-#apple-music button { padding: 9px 13px; border: 1px solid #b7bab2; border-radius: 6px; background: #fff; color: #252923; font: inherit; cursor: pointer; }
-#apple-music button:disabled { opacity: .45; cursor: default; }
-#apple-music button:focus-visible, #apple-music textarea:focus-visible { outline: 2px solid #4d6552; outline-offset: 3px; }
-#apple-music [data-action=connect] { color: #fff; background: #354739; border-color: #354739; }
+:is(#apple-music, #youtube-dialog) h1 { font-size: 24px; letter-spacing: -.6px; margin: 0; }
+:is(#apple-music, #youtube-dialog) label { display: block; font-weight: 600; margin: 24px 0 8px; }
+:is(#apple-music, #youtube-dialog) textarea { box-sizing: border-box; width: 100%; resize: vertical; padding: 12px; border: 1px solid #b7bab2; border-radius: 6px; font: 12px/1.5 ui-monospace, monospace; background: #fff; color: #252923; }
+:is(#apple-music, #youtube-dialog) button { padding: 9px 13px; border: 1px solid #b7bab2; border-radius: 6px; background: #fff; color: #252923; font: inherit; cursor: pointer; }
+:is(#apple-music, #youtube-dialog) button:disabled { opacity: .45; cursor: default; }
+:is(#apple-music, #youtube-dialog) button:focus-visible, :is(#apple-music, #youtube-dialog) textarea:focus-visible { outline: 2px solid #4d6552; outline-offset: 3px; }
+:is(#apple-music, #youtube-dialog) [data-action=connect] { color: #fff; background: #354739; border-color: #354739; }
 .connection-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-#apple-music .connection-note { color: #656a61; font-size: 12px; }
-#apple-music [role=status] { padding: 12px 0; border-block: 1px solid #d9dcd5; }
+:is(#apple-music, #youtube-dialog) .connection-note { color: #656a61; font-size: 12px; }
+:is(#apple-music, #youtube-dialog) [role=status] { padding: 12px 0; border-block: 1px solid #d9dcd5; }
 
 .hint--touch { display: none; }
 @media (pointer: coarse), (max-width: 639px) {
@@ -763,7 +763,7 @@ body {
   .ipod { -webkit-box-reflect: initial !important; }
   .ipod-shadow::before { display: none; }
 }
-#apple-music { color-scheme: light; }
+:is(#apple-music, #youtube-dialog) { color-scheme: light; }
 
 /* Native icon proportions are independent of the unverified menu row metrics. */
 .lcd-icon { display: inline-block; flex-shrink: 0; vertical-align: middle; }
@@ -791,3 +791,17 @@ body {
 .disk-error svg { width: 44px; height: 38px; fill: none; stroke: currentColor; stroke-width: 2; }
 .disk-error strong { font-weight: normal; }
 .disk-error small { margin-top: 6px; font-size: 15px; }
+
+
+#youtube-dialog input { width: 100%; padding: 12px; background: white; color: #252923; border: 1px solid #b7bab2; border-radius: 6px; font: inherit; }
+#youtube-dock { position: fixed; right: 20px; bottom: 20px; width: 360px; z-index: 10; background: #181a1b; color: #eee; border: 1px solid #444; border-radius: 8px; padding: 8px; font: 12px/1.3 system-ui, sans-serif; }
+#youtube-dock[hidden] { display: none; }
+.youtube-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.youtube-heading button { background: transparent; color: #ddd; border: 1px solid #777; border-radius: 4px; padding: 4px 8px; cursor: pointer; }
+.youtube-video, .youtube-video iframe { width: 100%; height: 200px; border: 0; display: block; }
+#youtube-dock p { margin: 6px 0 0; font-size: 11px; }
+@media (max-width: 1099px) {
+  #youtube-dock { bottom: env(safe-area-inset-bottom, 0px); left: 50%; right: auto; transform: translateX(-50%); width: min(480px, calc(100% - 16px)); }
+  body.youtube-active .stage { padding-bottom: 270px; }
+  body.youtube-active .hint { display: none; }
+}

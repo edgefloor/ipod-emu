@@ -1,3 +1,4 @@
+import { setupYouTube } from './integrations/youtube';
 import { installWakeScreen } from './wake';
 import { installAudioDiagnostics } from './audio-diagnostics';
 import { Ipod } from './device';
@@ -10,6 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // AudioContext is created by the first native gesture, never during page load.
 
   setup(device);
+  setupYouTube(device);
   window.ipod = device; // console/test hook
 
   document.addEventListener("visibilitychange", () => {
