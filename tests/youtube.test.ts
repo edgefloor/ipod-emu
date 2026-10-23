@@ -19,7 +19,7 @@ test('YouTube controls route to the embed and synchronize actual duration and qu
     getCurrentTime: () => time, getDuration: () => 240,
     isMuted: () => false, unMute() {}, mute() {}, getVolume: () => volume, setVolume(value: number) { volume = value; },
     getPlaylist: () => ['video-first', 'video-second'], getPlaylistIndex: () => 1,
-    setLoop() {}, setShuffle() {}, destroy() {}
+    cuePlaylist() {}, setLoop() {}, setShuffle() {}, destroy() {}
   };
   const player = new YouTubePlayer(embed, ipod);
   ipod.youtubePlayer = player;

@@ -18,6 +18,7 @@ export function playlistId(input: string): string {
 interface Embed {
   playVideo(): void; playVideoAt(index: number): void; pauseVideo(): void; nextVideo(): void; previousVideo(): void;
   seekTo(time: number, allowSeekAhead: boolean): void;
+  cuePlaylist(playlist: string[], index: number, startSeconds: number): void;
   getPlayerState(): number; getCurrentTime(): number; getDuration(): number;
   getVolume(): number; setVolume(volume: number): void; mute(): void; unMute(): void; isMuted(): boolean;
   getPlaylist(): string[]; getPlaylistIndex(): number;
@@ -135,6 +136,8 @@ export function setupYouTube(device: Ipod) {
   const notice = dock.querySelector<HTMLElement>('[role=status]')!;
   const fold = dock.querySelector<HTMLButtonElement>('[data-action=fold]')!;
   const details = dock.querySelector<HTMLElement>('.youtube-details')!;
+  const reload = dock.querySelector<HTMLButtonElement>('[data-action=reload]')!;
+  let activePlaylist = '';
   let expanded = false;
   function expand(open: boolean) {
     expanded = open;
@@ -164,6 +167,7 @@ export function setupYouTube(device: Ipod) {
     document.body.classList.remove('youtube-active');
     fitDevice(true);
     submit.disabled = false;
+    reload.disabled = false;
     device.top()?.render();
   };
   try { input.value = localStorage.getItem('ipod-youtube-playlist') || ''; } catch { /* Storage may be unavailable. */ }
@@ -174,13 +178,19 @@ export function setupYouTube(device: Ipod) {
   dialog.addEventListener('cancel', cancelLoad);
   dialog.querySelector<HTMLButtonElement>('[data-action=close]')!.onclick = () => { cancelLoad(); dialog.close(); };
   dock.querySelector<HTMLButtonElement>('[data-action=stop]')!.onclick = () => device.closeYouTube();
-  form.onsubmit = async event => {
-    event.preventDefault();
-    let id: string;
-    try { id = playlistId(input.value); } catch (error) { status.textContent = (error as Error).message; return; }
+  dock.querySelector<HTMLButtonElement>('[data-action=next]')!.onclick = () => device.youtubePlayer?.step(1);
+  reload.onclick = () => {
+    if (!activePlaylist) return;
+    const player = device.youtubePlayer;
+    const resume = player ? { ids: [...player.embed.getPlaylist()], index: player.embed.getPlaylistIndex(), time: player.elapsed, volume: player.volume } : undefined;
+    void loadPlaylist(activePlaylist, resume);
+  };
+  async function loadPlaylist(id: string, resume?: { ids: string[]; index: number; time: number; volume: number }) {
     device.closeYouTube();
+    activePlaylist = id;
     const request = generation;
     submit.disabled = true;
+    reload.disabled = true;
     status.textContent = 'Loading YouTube…';
     try {
       const sdk = await loadSDK();
@@ -191,14 +201,19 @@ export function setupYouTube(device: Ipod) {
       if (device.player.playing) device.player.toggle();
       device.audio.stop();
       dock.hidden = false;
-      expand(false);
+      expand(Boolean(resume));
       document.body.classList.add('youtube-active');
       fitDevice(true);
       dialog.close();
       notice.textContent = 'Tap Play in the YouTube player to begin.';
       const mount = document.createElement('div');
       dock.querySelector('.youtube-video')!.replaceChildren(mount);
-      readyTimer = setTimeout(() => { if (request === generation) notice.textContent = 'YouTube is taking longer to load. Check your connection, or stop and retry.'; }, 15000);
+      readyTimer = setTimeout(() => {
+        if (request !== generation) return;
+        reload.disabled = false;
+        expand(true);
+        notice.textContent = 'YouTube is taking longer to load. Try Reload player.';
+      }, 15000);
       embed = new sdk.Player(mount, {
         width: '100%', height: '200',
         playerVars: { listType: 'playlist', list: id, playsinline: 1, controls: 1, autoplay: 0, origin: location.origin },
@@ -213,9 +228,17 @@ export function setupYouTube(device: Ipod) {
                 ? `${title} · ${device.current?.artistName}` : 'Loading track details…';
             });
             device.youtubePlayer = player;
-            player.setVolume(device.settings.volume); player.modes(); player.start();
-            device.push(new YouTubePlaylistScreen(device));
-            expand(false);
+            if (resume?.ids.length && resume.index >= 0 && resume.index < resume.ids.length) {
+              event.target.cuePlaylist(resume.ids, resume.index, resume.time);
+            }
+            player.setVolume(resume?.volume ?? device.settings.volume);
+            if (resume) event.target.setLoop(device.settings.repeat === 'all'); else player.modes();
+            player.start();
+            reload.disabled = false;
+            if (!resume) device.push(new YouTubePlaylistScreen(device));
+            else device.top()?.render();
+            expand(Boolean(resume));
+            if (resume) notice.textContent = 'Player reloaded. Press Play to continue where you left off.';
             try { localStorage.setItem('ipod-youtube-playlist', `https://www.youtube.com/playlist?list=${id}`); } catch { /* Optional convenience. */ }
           },
           onStateChange: event => {
@@ -229,8 +252,13 @@ export function setupYouTube(device: Ipod) {
           },
           onError: event => {
             if (request !== generation) return;
+            clearTimeout(readyTimer);
+            reload.disabled = false;
+            dock.classList.remove('crt-playing');
             expand(true);
-            notice.textContent = [100, 101, 150].includes(event.data)
+            notice.textContent = event.data === 153
+              ? 'YouTube could not verify this page. Reload the player, or check whether a browser extension is blocking the site referrer.'
+              : [100, 101, 150].includes(event.data)
               ? 'This video is unavailable or cannot be embedded. Try Next or another playlist.'
               : 'YouTube could not play this playlist. Check that it is public or unlisted and allows embedding.';
           },
@@ -238,7 +266,17 @@ export function setupYouTube(device: Ipod) {
         }
       });
       status.textContent = 'Playlist loaded. Paste another link to replace it.';
-    } catch (error) { status.textContent = error instanceof Error ? error.message : 'Could not load YouTube.'; }
+    } catch (error) {
+      if (request !== generation) return;
+      status.textContent = error instanceof Error ? error.message : 'Could not load YouTube.';
+      if (!dialog.open) { dialog.showModal(); input.value = `https://www.youtube.com/playlist?list=${id}`; }
+    }
     finally { if (request === generation) submit.disabled = false; }
+  }
+  form.onsubmit = event => {
+    event.preventDefault();
+    let id: string;
+    try { id = playlistId(input.value); } catch (error) { status.textContent = (error as Error).message; return; }
+    void loadPlaylist(id);
   };
 }

@@ -83,6 +83,12 @@ bezel and speaker grilles. **Expand** reveals a larger screen and track details;
 Input buttons browse tracks and change sources, and the power button stops and
 closes the TV. The casing never overlays or filters YouTube's picture or controls.
 
+The expanded TV includes **Reload player** and **Next video**. Reload recreates
+the embed while keeping the queue order, current video, volume and playback
+position. Press Play to continue. Use it after a stalled load or after changing
+your YouTube session or browser permissions; it does not grant cookie access.
+Load timeouts expand the TV to show recovery controls.
+
 For ad-free playback, sign in to a YouTube Premium account on YouTube in the same
 browser. The playlist dialog links there. The embed can only use the session that
 YouTube and the browser make available; the app cannot import account cookies,

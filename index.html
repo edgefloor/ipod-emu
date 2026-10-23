@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>ipod-emu — classic iPod simulator</title>
@@ -105,6 +106,11 @@
       <div class="youtube-heading"><span>YouTube</span></div>
       <p class="youtube-track"></p>
       <p role="status" aria-live="polite"></p>
+      <div class="connection-actions youtube-recovery">
+        <button type="button" data-action="reload">Reload player</button>
+        <button type="button" data-action="next">Next video</button>
+      </div>
+      <p class="connection-note">Reload after changing your YouTube sign-in or browser permissions. Your place in the playlist is kept; press Play to continue.</p>
     </div>
   </section>
   <script type="module" src="app.js"></script>
