@@ -1,6 +1,6 @@
 # Apple Music setup
 
-1. Run `npm start` from the repository, and
+1. Run `pnpm start` from the repository, and
    open `http://localhost:8123`. Use HTTPS for a deployed site.
 2. Open **Settings → Apple Music** on the iPod.
 3. Paste a valid developer JWT and choose **Use token**. The app loads Apple's

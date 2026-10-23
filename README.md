@@ -10,14 +10,14 @@ JavaScript, with no runtime dependencies in demo mode.
 
 ## Run locally
 
-Requires Node.js 22 or newer. No packages need downloading to run the app.
+Requires Node.js 22.13 or newer and pnpm 11.9.0. No packages need downloading to run the app.
 
 ```sh
-npm start
+pnpm start
 ```
 
 Open `http://localhost:8123`. The server builds and serves only the public app
-files. Restart it after edits. Use `PORT=8124 npm start` if the port is occupied.
+files. Restart it after edits. Use `PORT=8124 pnpm start` if the port is occupied.
 You can also open `index.html` directly for the demo; Apple Music needs localhost
 or HTTPS.
 
@@ -64,9 +64,9 @@ and full DRM streaming have not yet been verified with a real account.
 ## Development and deployment
 
 ```sh
-npm run verify   # Syntax checks, tests, and static build
-npm test         # Behavior and MusicKit tests
-npm run build    # Produce dist/ for any static host
+pnpm run verify   # Syntax checks, tests, and static build
+pnpm test         # Behavior and MusicKit tests
+pnpm run build    # Produce dist/ for any static host
 ```
 
 GitHub Actions runs verification for pull requests and pushes to `main`.

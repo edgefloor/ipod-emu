@@ -83,8 +83,24 @@ class AudioEngine {
       const AC = window.AudioContext ?? window.webkitAudioContext;
       this.ctx = AC ? new AC() : null;
     }
-    if (this.ctx && this.ctx.state === "suspended") this.ctx.resume().catch(() => {});
+    if (this.ctx && ["suspended", "interrupted"].includes(this.ctx.state)) this.ctx.resume().catch(() => {});
     return this.ctx;
+  }
+
+  /** Run inside a tap/release gesture; pointerdown alone does not unlock iOS audio. */
+  unlock() {
+    // On supporting mobile browsers, route this music player through media audio.
+    try {
+      if (window.navigator?.audioSession) window.navigator.audioSession.type = "playback";
+    } catch { /* Older browsers retain their default audio session. */ }
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    // A silent source primes the output on WebKit without changing the feedback sounds.
+    const source = ctx.createBufferSource();
+    source.buffer = ctx.createBuffer(1, 1, ctx.sampleRate);
+    source.connect(ctx.destination);
+    source.onended = () => source.disconnect();
+    source.start();
   }
 
   /** A hard detent with the original fast decay and less high-frequency ring. */
@@ -1453,7 +1469,11 @@ function attachWheel(device) {
   }, true);
   wheel.addEventListener("pointerup", endDrag);
   wheel.addEventListener("pointercancel", endDrag);
-  wheel.addEventListener("lostpointercapture", endDrag);
+  wheel.addEventListener("lostpointercapture", event => {
+    // Touch implicitly captures the starting button. Its capture-loss event bubbles
+    // when we transfer capture to the wheel; that transfer is not the end of a drag.
+    if (event.target === wheel) endDrag(event);
+  });
   wheel.addEventListener("wheelscroll", (event) => {
     const { step } = event.detail ?? {};
     device.wheelStepBy(step || 0);
@@ -1528,9 +1548,9 @@ document.addEventListener("DOMContentLoaded", () => {
   window.AppleMusic?.setup(device);
   window.ipod = device; // console/test hook
 
-  // first interaction unlocks the audio context
-  const unlock = () => {
-    device.audio.ensureContext();
-  };
-  document.addEventListener("pointerdown", unlock, { once: true });
+  // Retry on activation gestures and after interruptions, not only the first press.
+  const unlock = () => device.audio.unlock();
+  for (const type of ["touchstart", "touchend", "pointerup", "click", "keydown"]) {
+    document.addEventListener(type, unlock, { capture: true, passive: true });
+  }
 });

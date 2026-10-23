@@ -21,8 +21,9 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 22
-      - run: npm ci
-      - run: npm run verify
+      - uses: pnpm/action-setup@v6
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run verify
       - name: Upload site
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4
