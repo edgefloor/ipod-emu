@@ -120,3 +120,11 @@ The bundled [Chicago Kare](https://github.com/KingDuane/Chicago-Kare) font by
 Duane King is MIT licensed; its [license](assets/fonts/LICENSE) ships with the
 site. Source revision: `dca7a9e4f2b971e39cf3a5e8a3f9309d4293d56d`.
 The project itself has no open-source license grant yet.
+
+## Device-specific audio diagnostics
+
+Append `?audio-debug=1` to the site URL to show an optional audio trace panel.
+On a fresh load, turn the wheel twice before tapping a device button, then use
+**Copy audio trace**. The report contains browser identification, input events,
+audio-context state, clock readings, and feedback requests. It stays in page
+memory and is not sent to a server. The normal URL does not enable diagnostics.
