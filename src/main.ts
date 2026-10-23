@@ -5,8 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   fitDevice();
   window.addEventListener("resize", fitDevice);
   const device = new Ipod();
-  // Allocate the context before the first gesture; activation still happens on touch/tap.
-  device.audio.ensureContext(false);
+  // AudioContext is created by the first native gesture, never during page load.
   attachWheel(device);
   attachButtons(device);
   attachKeyboard(device);

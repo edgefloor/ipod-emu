@@ -57,3 +57,31 @@ test('feedback keeps one silent output source active without starting music', ()
   audio.unlock();audio.unlock();assert.equal(starts,1);assert.equal(sources[0].loop,true);assert.equal(audio.source,null);
   audio.releaseOutput();assert.equal(stops,1);
 });
+
+test('activation retries a primer started before the browser accepted a gesture', () => {
+  device(); let starts = 0, stops = 0;
+  const fake = {
+    state: 'suspended', sampleRate: 48000, destination: {}, resume: async () => {},
+    createBuffer: () => ({}), createBufferSource: () => ({
+      loop: false, connect() {}, disconnect() {}, start() { starts++; }, stop() { stops++; }
+    })
+  };
+  const audio = new AudioEngine(DEFAULTS); audio.ctx = fake as unknown as AudioContext;
+  audio.unlock(); // pointerdown may arrive before WebKit accepts touch activation
+  audio.unlock(); // retry start() inside the subsequent touchstart gesture
+  assert.equal(starts, 2); assert.equal(stops, 1);
+  fake.state = 'running'; audio.unlock(); assert.equal(starts, 2);
+});
+
+test('wheel detents keep the newest feedback pending while the audio clock is stopped', () => {
+  device(); const heard: number[] = [];
+  const fake = { state: 'suspended', currentTime: 0, resume: async () => {} };
+  const audio = new AudioEngine(DEFAULTS); audio.ctx = fake as unknown as AudioContext;
+  audio.tickBuffer = () => ({} as AudioBuffer);
+  audio.playFeedback = (_buffer, _volume, _pan, at) => { heard.push(at ?? fake.currentTime); };
+  for (let i = 0; i < 8; i++) audio.wheelTick();
+  assert.equal(heard.length, 8, 'No frozen-clock queue limit may discard the newest detent');
+  assert.equal(audio.nextClickAt, 0);
+  fake.state = 'running'; fake.currentTime = 1; audio.wheelTick();
+  assert.equal(heard.at(-1), 1);
+});

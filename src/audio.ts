@@ -32,15 +32,19 @@ export class AudioEngine {
     return this.ctx;
   }
 
-  /** Run inside a tap/release gesture; pointerdown alone does not unlock iOS audio. */
+  /** Start and resume output synchronously inside a native input gesture. */
   unlock() {
     // On supporting mobile browsers, route this music player through media audio.
     try {
       if (window.navigator?.audioSession) window.navigator.audioSession.type = "playback";
     } catch { /* Older browsers retain their default audio session. */ }
-    const ctx = this.ensureContext();
+    const ctx = this.ensureContext(false);
     if (!ctx) return;
-    if (this.outputPrimer) return;
+    if (this.outputPrimer && ctx.state === "running") return;
+    // A source started outside an accepted gesture is not proof of activation.
+    // Retry source.start() in this gesture rather than retaining a blocked primer.
+    this.outputPrimer?.stop();
+    this.outputPrimer?.disconnect();
     // Keep WebKit’s output active between millisecond-long feedback sounds.
     // This buffer is silent and independent of the music source and queue.
     const source = ctx.createBufferSource();
@@ -49,6 +53,7 @@ export class AudioEngine {
     source.connect(ctx.destination);
     source.start();
     this.outputPrimer = source;
+    if (ctx.state !== "running") ctx.resume().catch(() => {});
   }
 
   releaseOutput() {
@@ -136,6 +141,12 @@ export class AudioEngine {
     if (!this.clicker) return;
     const ctx = this.ensureContext();
     if (!ctx) return;
+    if (ctx.state !== "running") {
+      // The audio clock is frozen: retain the newest detent, not scheduled time.
+      this.nextClickAt = 0;
+      this.playFeedback(this.tickBuffer(), 0.28, -0.2);
+      return;
+    }
     // Preserve the detent cadence during quick turns, with a bounded tail.
     const at = Math.max(ctx.currentTime, this.nextClickAt ?? 0);
     if (at - ctx.currentTime >= 0.1) return;

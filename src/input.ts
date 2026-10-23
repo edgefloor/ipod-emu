@@ -24,7 +24,7 @@ export function attachWheel(device: Ipod) {
   wheel.addEventListener("pointerdown", (event) => {
     if (event.button || pointer !== null || event.isPrimary === false) return;
     suppressClick = false;
-    device.audio.ensureContext();
+    device.audio.unlock();
     pointer = event.pointerId;
     const { cx, cy } = metrics(event);
     lastAngle = angleOf(event, cx, cy);
