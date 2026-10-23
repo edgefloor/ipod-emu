@@ -1,15 +1,15 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname } from 'node:path';
-import { publicFiles } from './build.mjs';
+import { publicFiles } from './build.ts';
 
 const allowed = new Set(publicFiles);
-const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
+const types: Record<string, string> = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
 const port = Number(process.env.PORT || 8123);
 const server = createServer(async (request, response) => {
   try {
-    if (!['GET', 'HEAD'].includes(request.method)) { response.writeHead(405, { Allow: 'GET, HEAD' }).end(); return; }
-    const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
+    if (!['GET', 'HEAD'].includes(request.method || '')) { response.writeHead(405, { Allow: 'GET, HEAD' }).end(); return; }
+    const pathname = decodeURIComponent(new URL(request.url || '/', 'http://localhost').pathname);
     const file = pathname === '/' ? 'index.html' : pathname.slice(1);
     if (!allowed.has(file)) { response.writeHead(404).end('Not found'); return; }
     const body = await readFile(new URL(`../dist/${file}`, import.meta.url));

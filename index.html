@@ -21,21 +21,9 @@
             <div class="lcd" id="lcd">
               <!-- status bar -->
               <div class="statusbar" id="statusbar">
-                <span class="statusbar__play" id="statusbar-play" aria-hidden="true">
-                  <svg class="icon-play" viewBox="0 0 24 24"><path d="M5 4l14 8-14 8z" /></svg>
-                  <svg class="icon-pause" viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z" /></svg>
-                </span>
+                <span class="statusbar__play" id="statusbar-play" aria-hidden="true"></span>
                 <span class="statusbar__title" id="statusbar-title">iPod</span>
-                <!-- Decorative full battery, as on the reference emulator. -->
-                <svg class="statusbar__battery" viewBox="0 0 32 16" aria-hidden="true">
-                  <path d="M1 0H27L28 1V5H31V11H28V15L27 16H1L0 15V1Z M2 2V14H26V2Z" fill="currentColor" fill-rule="evenodd" />
-                  <g fill="currentColor">
-                    <rect x="4" y="3.5" width="4" height="9" />
-                    <rect x="9.5" y="3.5" width="4" height="9" />
-                    <rect x="15" y="3.5" width="4" height="9" />
-                    <rect x="20.5" y="3.5" width="4" height="9" />
-                  </g>
-                </svg>
+                <span id="battery"></span>
               </div>
               <!-- dynamic content -->
               <div class="content" id="content"></div>
@@ -80,8 +68,6 @@
     <p role="status" aria-live="polite">Demo music is active.</p>
     <div class="connection-actions"><button data-action="refresh" disabled>Refresh library</button><button data-action="disconnect" disabled>Disconnect &amp; use demo</button></div>
   </dialog>
-  <script src="data.js"></script>
-  <script src="apple-music.js"></script>
-  <script src="ipod.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>

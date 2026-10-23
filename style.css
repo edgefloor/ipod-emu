@@ -9,7 +9,7 @@
 }
 
 :root {
-  --ink: #484647;
+  --ink: var(--ink-unlit, #484647);
   --chev: #333333;
   --lcd-unlit-1: #929f99;
   --lcd-unlit-2: #b3bcb0;
@@ -179,7 +179,7 @@ body {
 }
 
 .screen.backlit {
-  --ink: #77717c;
+  --ink: var(--ink-lit, #77717c);
   --chev: var(--ink);
   border-color: #55514f;
 }
@@ -383,18 +383,7 @@ body {
 
 .screen.backlit .menu__row--selected { color: var(--lcd-sel-lit-ink); }
 
-.chev {
-  flex: none;
-  width: 10px;
-  height: 14px;
-  margin-right: 5px;
-  background: var(--chev);
-  clip-path: polygon(0 0, 40% 0, 40% 14%, 60% 14%, 60% 28%, 80% 28%, 80% 42%, 100% 42%, 100% 58%, 80% 58%, 80% 72%, 60% 72%, 60% 86%, 40% 86%, 40% 100%, 0 100%, 0 72%, 20% 72%, 20% 58%, 40% 58%, 40% 42%, 20% 42%, 20% 28%, 0 28%);
-}
-
-.menu__row--selected .chev { background: currentColor; }
-
-.set__value { font-weight: 400; }
+.chev { width: 10px; height: 15px; margin-left: auto; margin-right: 5px; flex-shrink: 0; color: currentColor; }
 
 /* now playing */
 .np {
@@ -775,3 +764,15 @@ body {
   .ipod-shadow::before { display: none; }
 }
 #apple-music { color-scheme: light; }
+
+/* Native icon proportions are independent of the unverified menu row metrics. */
+.lcd-icon { display: inline-block; flex-shrink: 0; vertical-align: middle; }
+.statusbar__play svg { width: 34px; height: 17px; }
+.statusbar__battery { width: 42px; height: 17px; }
+#battery { display: flex; align-items: center; }
+.np__modifiers { display: flex; align-items: center; gap: 5px; }
+.np__modifiers svg { width: 22px; height: 15px; }
+.np__volume > svg { width: 17px; height: 12px; }
+
+.adjustment { padding: 70px 24px; }
+.adjustment .np__bar { width: 100%; }

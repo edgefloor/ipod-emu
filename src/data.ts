@@ -1,3 +1,4 @@
+import type { Library } from './types';
 /* ipod-emu — original demo dataset in the schema observed on the live component
  * (schemaVersion 3, songs / artists / playlists). All metadata, melodies and
  * artwork seeds here are invented for local playback; there are no third-party
@@ -5,7 +6,7 @@
  * song's audio procedurally from `melodySeed`.
  */
 
-window.IPOD_DATA = {
+export const DEMO_LIBRARY: Library = {
   schemaVersion: 3,
   storefront: "us",
   language: "index",
@@ -36,14 +37,14 @@ window.IPOD_DATA = {
 };
 
 // Original demo library metadata for the device's album, genre and composer browsers.
-const demoAlbums = {
+const demoAlbums: Record<string, string> = {
   "Fern Voltage": "Night Bus",
   "Halcyon Diner": "After Hours",
   "Maru & The Signal": "Tape Loops",
   "Juno Stencil": "Arcade Summer",
   "Wave Parade": "Solar Radio"
 };
-for (const song of window.IPOD_DATA.songs) {
+for (const song of DEMO_LIBRARY.songs) {
   song.albumName = demoAlbums[song.artistName];
   song.genre = song.artistName === "Juno Stencil" ? "Chiptune" : "Electronic";
   song.composer = song.artistName;

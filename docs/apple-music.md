@@ -2,12 +2,12 @@
 
 1. Run `pnpm start` from the repository, and
    open `http://localhost:8123`. Use HTTPS for a deployed site.
-2. Open **Settings → Apple Music** on the iPod.
+2. Open **Browser → Apple Music** on the iPod.
 3. Paste a valid developer JWT and choose **Use token**. The app loads Apple's
    MusicKit v3 SDK at this point. Token format and expiry are checked locally;
    Apple validates the signature and permissions.
 4. Choose **Connect Apple Music** and complete Apple's sign-in and consent flow.
-5. Close the panel and browse **Music**. Songs and playlist listings load across
+5. Close the panel and browse **Playlists**, **Artists**, or **Songs**. Songs and playlist listings load across
    all pages; individual playlist tracks load when opened.
 
 MusicKit supplies streaming, elapsed time, duration, queue progression, shuffle,
@@ -29,7 +29,7 @@ Keep the private `.p8` key outside this project and outside the directory being
 served. The helper uses Node's built-in crypto library, with no network calls:
 
 ```sh
-node scripts/generate-developer-token.mjs \
+pnpm token \
   --key /private/path/AuthKey_KEYID.p8 \
   --team TEAM_ID --key-id KEY_ID \
   --origin http://localhost:8123 --days 30
@@ -39,9 +39,10 @@ Copy the printed JWT into the setup panel. The helper defaults to 30 days and
 caps expiry at 180 days. Set `--origin` to the exact deployed origin when hosting
 elsewhere. Never paste or upload the signing key to the app.
 
-Implementation: `apple-music.js` handles SDK setup, paginated library requests,
-metadata mapping, and the player adapter. `ipod.js` routes playback to the active
-source. Tests use an SDK mock; they do not prove live Apple authorization or DRM
+Implementation: `src/integrations/music-api.ts` handles SDK loading, token
+preflight, pagination, and metadata mapping. `music-player.ts` serializes playback
+commands; `music-dialog.ts` owns the connection form. `src/device.ts` routes
+playback to the active source. Tests use an SDK mock; they do not prove live Apple authorization or DRM
 streaming. Those require a valid developer token and an Apple Music account.
 
 References: [MusicKit Web documentation](https://js-cdn.music.apple.com/musickit/v3/docs/index.html),
