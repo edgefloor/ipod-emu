@@ -84,14 +84,17 @@
       <input id="youtube-link" type="text" placeholder="https://www.youtube.com/playlist?list=…" required autocomplete="off">
       <p>Load a public or unlisted playlist. Videos play in a visible YouTube player, with the iPod controlling playback. Some videos cannot be embedded.</p>
       <button type="submit">Load playlist</button>
+      <p class="connection-note">Already have YouTube Premium? <a href="https://www.youtube.com/" target="_blank" rel="noopener">Sign in on YouTube</a> in this browser. Ad-free playback depends on YouTube recognizing your Premium session; browser privacy settings can prevent this. Signing in without Premium does not remove ads.</p>
       <p role="status" aria-live="polite">No API key needed. YouTube loads only when you submit a playlist.</p>
     </form>
   </dialog>
   <section id="youtube-dock" aria-label="YouTube player" hidden>
-    <div class="youtube-heading"><span>YouTube</span><button type="button" data-action="stop">Stop &amp; close</button></div>
+    <div class="youtube-heading"><span>YouTube</span><button type="button" data-action="fold" aria-expanded="true" aria-controls="youtube-body">Collapse</button><button type="button" data-action="stop">Stop &amp; close</button></div>
+    <div class="youtube-body" id="youtube-body">
     <div class="youtube-video"></div>
     <p class="youtube-track"></p>
     <div class="youtube-actions"><button type="button" data-action="playlist">Playlist</button><button type="button" data-action="change">Change playlist</button><p role="status" aria-live="polite"></p></div>
+    </div>
   </section>
   <script type="module" src="app.js"></script>
 </body>

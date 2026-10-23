@@ -71,7 +71,20 @@ YouTube player handles streaming; tap its Play button if your browser blocks a
 start from the iPod controls. Private, age-restricted, region-blocked, or
 embedding-disabled videos may not play.
 
-Play/Pause, Next, Previous, volume, shuffle, and repeat control the YouTube player.
+Play/Pause, Next, Previous, shuffle, and repeat control the YouTube player.
+Wheel volume accumulates locally while the iframe acknowledges changes and unmutes
+when raised. On iPhone/iPad, use the device's volume buttons for YouTube video;
+the LCD shows that instruction instead of a simulated volume adjustment.
+
+The video panel starts collapsed. Selecting a track or pressing Play opens it.
+**Collapse** pauses playback and retains the playlist and position; **Show player**
+expands it without automatically playing. The embed remains visible during playback,
+as required by YouTube's API policies.
+
+For ad-free playback, sign in to a YouTube Premium account on YouTube in the same
+browser. The playlist dialog links there. The embed can only use the session that
+YouTube and the browser make available; the app cannot import account cookies,
+force Premium recognition, or turn ads off. A free signed-in account still has ads.
 Import opens a browsable playlist with its real name, video titles, and channel
 names fetched directly from YouTube's oEmbed endpoint. Select or Play starts the
 highlighted entry. The dock's **Playlist** button returns to that list, and

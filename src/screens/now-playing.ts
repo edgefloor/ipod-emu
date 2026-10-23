@@ -13,6 +13,11 @@ export class NowPlayingScreen extends Screen {
   }
 
   onWheel(step: number) {
+    if (this.device.youtubePlayer?.systemVolume) {
+      this.device.volumeVisibleUntil = Date.now() + 1800;
+      this.render();
+      return;
+    }
     this.device.player.setVolume(this.device.player.volume + step / 32);
     this.device.settings.volume = this.device.player.volume;
     persist(this.device.settings);
@@ -93,7 +98,10 @@ export class NowPlayingScreen extends Screen {
       // volume bar takes over the scrubber zone, like the real UI
       const vol = document.createElement("div");
       vol.className = "np__progress np__volume";
-      vol.append(icon('speaker'), volumeBar(device), icon('speakerLoud'));
+      if (device.youtubePlayer?.systemVolume) {
+        vol.classList.add('np__system-volume');
+        vol.textContent = 'Use phone volume buttons';
+      } else vol.append(icon('speaker'), volumeBar(device), icon('speakerLoud'));
       np.appendChild(vol);
     } else {
       np.appendChild(progressRow(device.elapsed, device.duration));

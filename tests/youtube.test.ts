@@ -17,7 +17,7 @@ test('YouTube controls route to the embed and synchronize actual duration and qu
     nextVideo() { next++; }, previousVideo() { previous++; },
     seekTo(value: number) { time = value; }, getPlayerState: () => playing,
     getCurrentTime: () => time, getDuration: () => 240,
-    getVolume: () => volume, setVolume(value: number) { volume = value; },
+    isMuted: () => false, unMute() {}, mute() {}, getVolume: () => volume, setVolume(value: number) { volume = value; },
     getPlaylist: () => ['video-first', 'video-second'], getPlaylistIndex: () => 1,
     setLoop() {}, setShuffle() {}, destroy() {}
   };
@@ -55,5 +55,35 @@ test('YouTube playlist rows refresh titles without moving selection and select b
   assert.equal(screen.sel, 1);
   assert.equal(screen.rows[1].title, 'A real song');
   screen.onPlay(); assert.equal(selected, 'two');
+  clearTimeout(ipod.dimTimer);
+});
+
+test('rapid wheel volume changes accumulate before the iframe acknowledges them', () => {
+  const ipod = device();
+  let requested = 50;
+  const embed = {
+    getVolume: () => 50, setVolume(value: number) { requested = value; },
+    isMuted: () => false, unMute() {}, mute() {}
+  } as unknown as ConstructorParameters<typeof YouTubePlayer>[0];
+  const player = new YouTubePlayer(embed, ipod);
+  player.setVolume(player.volume + .1);
+  player.setVolume(player.volume + .1);
+  player.setVolume(player.volume + .1);
+  assert.equal(requested, 80);
+  assert.equal(player.volume, .8);
+  clearTimeout(ipod.dimTimer);
+});
+
+test('raising YouTube volume unmutes and zero volume mutes', () => {
+  const ipod = device();
+  let muted = true, volume = 75;
+  const embed = {
+    getVolume: () => volume, setVolume(value: number) { volume = value; },
+    isMuted: () => muted, unMute() { muted = false; }, mute() { muted = true; }
+  } as unknown as ConstructorParameters<typeof YouTubePlayer>[0];
+  const player = new YouTubePlayer(embed, ipod);
+  assert.equal(player.volume, 0);
+  player.setVolume(.2); assert.equal(muted, false); assert.equal(player.volume, .2);
+  player.setVolume(0); assert.equal(muted, true); assert.equal(player.volume, 0);
   clearTimeout(ipod.dimTimer);
 });

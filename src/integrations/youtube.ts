@@ -19,7 +19,7 @@ interface Embed {
   playVideo(): void; playVideoAt(index: number): void; pauseVideo(): void; nextVideo(): void; previousVideo(): void;
   seekTo(time: number, allowSeekAhead: boolean): void;
   getPlayerState(): number; getCurrentTime(): number; getDuration(): number;
-  getVolume(): number; setVolume(volume: number): void;
+  getVolume(): number; setVolume(volume: number): void; mute(): void; unMute(): void; isMuted(): boolean;
   getPlaylist(): string[]; getPlaylistIndex(): number;
   setLoop(loop: boolean): void; setShuffle(shuffle: boolean): void; destroy(): void;
 }
@@ -47,6 +47,10 @@ function loadSDK(): Promise<SDK> {
 }
 export class YouTubePlayer {
   playlistName = 'YouTube playlist';
+  private requestedVolume: number | null = null;
+  private volumeRequestedAt = 0;
+  readonly systemVolume = /iPad|iPhone|iPod/.test(window.navigator.userAgent) || (/Macintosh/.test(window.navigator.userAgent) && window.navigator.maxTouchPoints > 1);
+  reveal: () => void = () => {};
   private tracks = new Map<string, Track>();
   private closed = false;
   private timer: ReturnType<typeof setInterval> | undefined;
@@ -85,12 +89,23 @@ export class YouTubePlayer {
   get playing() { return this.embed.getPlayerState() === 1; }
   get elapsed() { return this.embed.getCurrentTime() || 0; }
   get duration() { return this.embed.getDuration() || 0; }
-  get volume() { return this.embed.getVolume() / 100; }
-  setVolume(value: number) { this.embed.setVolume(Math.max(0, Math.min(100, value * 100))); }
-  toggle() { if (this.playing) this.embed.pauseVideo(); else this.embed.playVideo(); }
-  step(dir: number) { if (dir < 0) { if (this.elapsed > 3) this.restart(); else this.embed.previousVideo(); } else this.embed.nextVideo(); }
+  get volume() {
+    const actual = this.embed.isMuted() ? 0 : this.embed.getVolume() / 100;
+    if (this.requestedVolume !== null && (Math.abs(actual - this.requestedVolume) < .005 || performance.now() - this.volumeRequestedAt > 2000)) this.requestedVolume = null;
+    return this.requestedVolume ?? actual;
+  }
+  setVolume(value: number) {
+    if (this.systemVolume || !Number.isFinite(value)) return;
+    const percent = Math.round(Math.max(0, Math.min(100, value * 100)));
+    this.requestedVolume = percent / 100;
+    this.volumeRequestedAt = performance.now();
+    this.embed.setVolume(percent);
+    if (percent > 0) this.embed.unMute(); else this.embed.mute();
+  }
+  toggle() { if (this.playing) this.embed.pauseVideo(); else { this.reveal(); this.embed.playVideo(); } }
+  step(dir: number) { this.reveal(); if (dir < 0) { if (this.elapsed > 3) this.restart(); else this.embed.previousVideo(); } else this.embed.nextVideo(); }
   restart() { this.embed.seekTo(0, true); }
-  playAt(index: number) { this.embed.playVideoAt(index); }
+  playAt(index: number) { this.reveal(); this.embed.playVideoAt(index); }
   playId(id: string) {
     const index = this.embed.getPlaylist().indexOf(id);
     if (index >= 0) this.playAt(index);
@@ -119,6 +134,19 @@ export function setupYouTube(device: Ipod) {
   const submit = dialog.querySelector<HTMLButtonElement>('[type=submit]')!;
   const dock = document.getElementById('youtube-dock')!;
   const notice = dock.querySelector<HTMLElement>('[role=status]')!;
+  const fold = dock.querySelector<HTMLButtonElement>('[data-action=fold]')!;
+  const body = dock.querySelector<HTMLElement>('.youtube-body')!;
+  let collapsed = false;
+  function expand(open: boolean) {
+    collapsed = !open;
+    if (collapsed) embed?.pauseVideo();
+    body.hidden = collapsed;
+    fold.textContent = collapsed ? 'Show player' : 'Collapse';
+    fold.setAttribute('aria-expanded', String(open));
+    dock.classList.toggle('youtube-collapsed', collapsed);
+    fitDevice(true);
+  }
+  fold.onclick = () => expand(collapsed);
   let generation = 0;
   let embed: Embed | null = null;
   let previous: { current: Track | null; sequence: Track[]; position: number } | null = null;
@@ -164,6 +192,7 @@ export function setupYouTube(device: Ipod) {
       if (device.player.playing) device.player.toggle();
       device.audio.stop();
       dock.hidden = false;
+      expand(true);
       document.body.classList.add('youtube-active');
       fitDevice(true);
       dialog.close();
@@ -185,13 +214,16 @@ export function setupYouTube(device: Ipod) {
                 ? `${title} · ${device.current?.artistName}` : 'Loading track details…';
             });
             device.youtubePlayer = player;
+            player.reveal = () => expand(true);
             player.setVolume(device.settings.volume); player.modes(); player.start();
             device.push(new YouTubePlaylistScreen(device));
+            expand(false);
             try { localStorage.setItem('ipod-youtube-playlist', `https://www.youtube.com/playlist?list=${id}`); } catch { /* Optional convenience. */ }
           },
           onStateChange: event => {
             if (request !== generation || !device.youtubePlayer) return;
             const player = device.youtubePlayer;
+            if (collapsed && (event.data === 1 || event.data === 3)) { player.embed.pauseVideo(); return; }
             player.sync();
             if (event.data === 1 && device.top() instanceof YouTubePlaylistScreen) device.push(new NowPlayingScreen(device));
             if (event.data === 0 && device.settings.repeat === 'song') { player.restart(); player.embed.playVideo(); }

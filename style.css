@@ -816,3 +816,8 @@ body {
 .title--scroll span { display: inline-block; }
 /* Keep status changes from resizing the device during playback. */
 #youtube-dock .youtube-actions p { min-height: 39px; }
+.youtube-body[hidden] { display: none; }
+.youtube-heading { gap: 6px; }
+.youtube-collapsed .youtube-heading { margin-bottom: 0; }
+.np__system-volume { display: block; text-align: center; font-size: 17px; padding: 8px 0; }
+#youtube-dialog a { color: #345d42; text-decoration: underline; }
