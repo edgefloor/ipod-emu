@@ -63,6 +63,25 @@ In Brick, Select launches or restarts, Play/Pause pauses, and Left/Right move
 the paddle. Browser → Backlight toggles lighting immediately; Settings controls
 the timeout. Clicker silences both wheel and button feedback.
 
+## Music-reactive background
+
+Open **Background → MilkDrop → Enable music reaction** in desktop Chrome or Edge.
+In the browser sharing prompt, select this player's tab and enable **Share tab audio**.
+The shared audio drives a MilkDrop preset through Butterchurn. The capture stays in
+this browser; it is not recorded, uploaded, or replayed. The browser also requires
+a video track for tab sharing, but the visualizer only processes audio.
+
+Missing audio and cancelled requests can be retried. **Stop sharing audio**, switching
+to CRT or Off, leaving the page, or ending browser sharing releases the capture.
+Safari and mobile browsers without tab-audio capture can use ambient MilkDrop only.
+A browser exposing screen capture does not necessarily support audio; the app checks
+the returned stream before connecting it.
+
+Only one background renderer runs at a time. MilkDrop loads on demand, renders at
+at most 24 fps with a maximum 960-pixel drawing dimension, and pauses when the tab
+is hidden or reduced motion is requested. **Pause background** freezes visuals
+without stopping music or the sharing session.
+
 ## YouTube playlists
 
 Open **Browser → YouTube**, paste a playlist link or ID, and choose **Load playlist**.
