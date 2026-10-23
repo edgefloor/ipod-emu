@@ -38,6 +38,17 @@ visual indicator, not a reading of your computer's battery.
 
 ## Controls
 
+Choose **Tap to wake** once after loading the page. This activates audio before
+wheel controls become available, including on mobile Safari. Sound synthesis and
+feedback levels are unchanged.
+
+For motion effects, check **Enable motion effects** before waking and allow the
+browser's motion permission if prompted. Three strong alternating movements in
+under a second reveal a simulated disk error. Select or Menu recovers the previous
+screen; settings and music data are never deleted. Denying motion permission leaves
+the player fully usable. Motion readings stay in the browser.
+
+
 | Control | Action |
 | --- | --- |
 | Drag wheel / Up and Down | Move selection; adjust volume in Now Playing |

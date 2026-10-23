@@ -12,7 +12,16 @@
 </head>
 <body>
   <div id="viewport-size" aria-hidden="true"></div>
-  <main class="stage">
+  <section class="wake-screen" id="wake-screen" aria-labelledby="wake-title">
+    <div class="wake-card">
+      <p class="wake-eyebrow">A little music machine.</p>
+      <h1 id="wake-title">Ready when you are.</h1>
+      <button id="wake-button" type="button">Tap to wake</button>
+      <label class="wake-motion" id="wake-motion-label" hidden><input type="checkbox" id="wake-motion"> Enable motion effects</label>
+      <p id="wake-status" role="status">One tap, then take it for a spin.</p>
+    </div>
+  </section>
+  <main class="stage" inert>
     <!-- Original artwork, drawn in "plain" HTML/CSS + inline SVG. -->
     <div class="ipod-shadow">
       <div class="ipod" id="ipod">
