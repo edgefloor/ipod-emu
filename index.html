@@ -2,14 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>ipod-emu — classic iPod simulator</title>
   <meta name="description" content="A classic iPod simulator with a scroll wheel, demo music, Brick, and optional Apple Music playback.">
   <meta name="theme-color" content="#131415">
+  <meta name="color-scheme" content="dark">
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div id="viewport-size" aria-hidden="true"></div>
   <main class="stage">
     <!-- Original artwork, drawn in "plain" HTML/CSS + inline SVG. -->
     <div class="ipod-shadow">
@@ -66,7 +68,7 @@
         </div>
       </div>
     </div>
-    <p class="hint">Drag the wheel &middot; click the buttons &middot; arrows / space / enter</p>
+    <p class="hint"><span class="hint--desktop">Drag the wheel &middot; click the buttons &middot; arrows / space / enter</span><span class="hint--touch">Turn the wheel &middot; tap to select</span></p>
   </main>
   <dialog id="apple-music" aria-labelledby="apple-music-title">
     <div class="connection-heading"><h1 id="apple-music-title">Apple Music</h1><button data-action="close" aria-label="Close Apple Music settings">Close</button></div>

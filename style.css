@@ -29,10 +29,20 @@
 
 * { box-sizing: border-box; }
 
+html {
+  background: #131415;
+  color-scheme: dark;
+  overscroll-behavior: none;
+}
+
+/* Measures the small viewport, unaffected by expanding/collapsing browser chrome. */
+#viewport-size { position: fixed; width: 0; height: 100svh; visibility: hidden; pointer-events: none; }
+
 body {
   margin: 0;
   min-height: 100vh;
-  min-height: 100svh;
+  min-height: var(--layout-height, 100svh);
+  overscroll-behavior: none;
   display: grid;
   place-items: center;
   background: radial-gradient(1000px 700px at 50% 30%, #232527 0%, #131415 60%, #0b0c0d 100%);
@@ -748,3 +758,19 @@ body {
 .connection-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 #apple-music .connection-note { color: #656a61; font-size: 12px; }
 #apple-music [role=status] { padding: 12px 0; border-block: 1px solid #d9dcd5; }
+
+.hint--touch { display: none; }
+@media (pointer: coarse), (max-width: 639px) {
+  .stage {
+    padding: calc(16px + env(safe-area-inset-top, 0px))
+      calc(16px + env(safe-area-inset-right, 0px))
+      calc(16px + env(safe-area-inset-bottom, 0px))
+      calc(16px + env(safe-area-inset-left, 0px));
+  }
+  .hint { margin-top: 20px; font-size: 10px; letter-spacing: .06em; }
+  .hint--desktop { display: none; }
+  .hint--touch { display: inline; }
+  .ipod { -webkit-box-reflect: initial !important; }
+  .ipod-shadow::before { display: none; }
+}
+#apple-music { color-scheme: light; }

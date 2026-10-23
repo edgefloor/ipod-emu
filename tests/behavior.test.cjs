@@ -100,3 +100,20 @@ test('touch capture transfer from a button does not terminate wheel dragging', (
 test('audio retries resume after a mobile interruption', () => {
   assert.equal(run(`(() => {let resumed=0;const audio=new AudioEngine({clicker:true,volume:.5});audio.ctx={state:'interrupted',resume(){resumed++;return Promise.resolve();}};audio.ensureContext();return resumed;})()`), 1);
 });
+
+test('mobile device sizing ignores height-only changes but responds to rotation', () => {
+  const result = run(`(() => {
+    const oldWindow={...window}, oldRoot=document.documentElement, oldQuery=document.querySelector;
+    const values={};document.documentElement={style:{setProperty:(key,value)=>values[key]=value}};
+    document.querySelector=()=>null;
+    window.matchMedia=()=>({matches:true});window.innerWidth=390;window.innerHeight=600;
+    try {
+      fitDevice();const initial=values['--device-scale'];
+      window.innerHeight=820;fitDevice();const expanded=values['--device-scale'];
+      window.innerWidth=820;window.innerHeight=390;fitDevice();
+      return {initial,expanded,rotated:values['--device-scale']};
+    } finally {Object.assign(window,oldWindow);document.documentElement=oldRoot;document.querySelector=oldQuery;}
+  })()`);
+  assert.equal(result.initial,result.expanded);
+  assert.notEqual(result.initial,result.rotated);
+});

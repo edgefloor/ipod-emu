@@ -1527,12 +1527,23 @@ function attachKeyboard(device) {
   });
 }
 
-/* Fit the whole device and controls, including when mobile browser chrome changes. */
+/* Keep mobile geometry fixed while browser chrome or the keyboard changes height. */
+let mobileViewport = null;
 function fitDevice() {
   const width = window.innerWidth;
-  const height = window.innerHeight;
-  const reserve = width >= 640 && height >= 850 ? 220 : 96;
-  const scale = Math.max(0.2, Math.min(1, (width - 40) / 415, (height - reserve) / 692));
+  const mobile = width < 640 || window.matchMedia("(pointer: coarse)").matches;
+  if (mobile && mobileViewport?.width === width) return;
+  const height = mobile
+    ? document.querySelector("#viewport-size")?.getBoundingClientRect().height || window.innerHeight
+    : window.innerHeight;
+  mobileViewport = mobile ? { width, height } : null;
+  const stage = document.querySelector(".stage");
+  const padding = stage ? window.getComputedStyle(stage) : null;
+  const horizontal = padding ? parseFloat(padding.paddingLeft) + parseFloat(padding.paddingRight) + 8 : 40;
+  const vertical = padding ? parseFloat(padding.paddingTop) + parseFloat(padding.paddingBottom) : 40;
+  const reserve = mobile ? vertical + 44 : width >= 640 && height >= 850 ? 220 : 96;
+  const scale = Math.max(0.2, Math.min(1, (width - horizontal) / 415, (height - reserve) / 692));
+  document.documentElement.style.setProperty("--layout-height", mobile ? `${height}px` : "100svh");
   document.documentElement.style.setProperty("--device-scale", String(scale));
 }
 
