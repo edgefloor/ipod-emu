@@ -17,15 +17,14 @@
   <div id="viewport-size" aria-hidden="true"></div>
   <section class="wake-screen" id="wake-screen" aria-labelledby="wake-title">
     <div class="wake-card">
-      <div class="panel-titlebar"><span class="panel-led" aria-hidden="true"></span><span>ipod-emu</span><span class="panel-model">PORTABLE MUSIC PLAYER</span></div>
+      <div class="panel-titlebar"><span>ipod-emu</span><span class="panel-model">A CLASSIC, REPLAYED.</span></div>
       <div class="wake-display">
         <svg class="welcome-device" viewBox="0 0 66 96" aria-hidden="true"><rect x="9" y="2" width="48" height="90" rx="7"/><rect x="15" y="10" width="36" height="26" rx="2"/><path d="M27 17v12l12-6z" class="welcome-play"/><circle cx="33" cy="63" r="19"/><circle cx="33" cy="63" r="6"/></svg>
-        <p class="wake-eyebrow">YOUR MUSIC. A DIFFERENT TIME.</p>
-        <h1 id="wake-title">Back to the click wheel.</h1>
-        <p class="wake-description">A pocket-sized player, a tiny television,<br>and a playlist worth getting lost in.</p>
+        <h1 id="wake-title">Pick up where<br>music left off.</h1>
+        <p class="wake-description">Your music, a click wheel, and a little time.</p>
       </div>
       <div class="wake-deck">
-        <button id="wake-button" type="button"><span aria-hidden="true">▶</span> Tap to wake</button>
+        <button id="wake-button" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3v10l8-5z"/></svg> Tap to wake</button>
         <p class="wake-sources">Demo music · YouTube · Apple Music</p>
         <label class="wake-motion" id="wake-motion-label" hidden><input type="checkbox" id="wake-motion"> Enable shake effects</label>
         <p id="wake-status" role="status">Turn the wheel to browse. Press the center to select.</p>
@@ -80,23 +79,21 @@
   </main>
   <dialog id="apple-music" aria-labelledby="apple-music-title">
     <div class="connection-heading"><h1 id="apple-music-title">Apple Music</h1><button data-action="close" aria-label="Close Apple Music settings">Close</button></div>
-    <p class="connection-kicker">LIBRARY CONNECTION / 02</p>
     <p>Bring your library to this iPod. Configure your developer token, then sign in with Apple.</p>
     <label for="developer-token">Developer token</label>
-    <textarea id="developer-token" rows="4" spellcheck="false" autocomplete="off" placeholder="Paste your developer JWT"></textarea>
-    <p class="connection-note">Kept for this session only. Paste the generated token, never your private .p8 key. Apple manages your listener authorization. Full playback requires an eligible Apple Music subscription.</p>
+    <textarea id="developer-token" aria-describedby="token-help" rows="3" spellcheck="false" autocomplete="off" placeholder="Paste your developer JWT"></textarea>
+    <p class="connection-note" id="token-help">Kept for this session only. Paste the generated token, never your private .p8 key. Apple manages your listener authorization. Full playback requires an eligible Apple Music subscription.</p>
     <div class="connection-actions"><button data-action="token">Use token</button><button data-action="connect" disabled>Connect Apple Music</button></div>
     <p role="status" aria-live="polite">Demo music is active.</p>
     <div class="connection-actions"><button data-action="refresh" disabled>Refresh library</button><button data-action="disconnect" disabled>Disconnect &amp; use demo</button></div>
   </dialog>
   <dialog id="youtube-dialog" aria-labelledby="youtube-title">
     <div class="connection-heading"><h1 id="youtube-title">YouTube playlist</h1><button type="button" data-action="close">Close</button></div>
-    <p class="connection-kicker">VIDEO INPUT / 01</p>
-    <p class="connection-intro">Your playlist. On the small screen.</p>
+    <p class="connection-intro">Bring a playlist to the small screen.</p>
     <form>
       <label for="youtube-link">Playlist link or ID</label>
-      <input id="youtube-link" type="text" placeholder="https://www.youtube.com/playlist?list=…" required autocomplete="off">
-      <p>Load a public or unlisted playlist. Videos play in a visible YouTube player, with the iPod controlling playback. Some videos cannot be embedded.</p>
+      <input id="youtube-link" aria-describedby="playlist-help" type="text" placeholder="https://www.youtube.com/playlist?list=…" required autocomplete="off">
+      <p id="playlist-help" class="connection-note">Load a public or unlisted playlist. Videos play in a visible YouTube player, with the iPod controlling playback. Some videos cannot be embedded.</p>
       <button type="submit">Load playlist</button>
       <p class="connection-note">Have YouTube Premium? <a href="https://www.youtube.com/" target="_blank" rel="noopener">Sign in on YouTube</a> in this browser. </p>
       <aside class="connection-advisory"><strong>A note for Safari listeners</strong><p>Prevent Cross-Site Tracking can stop the YouTube player from recognizing your Premium account, so you may still see ads here even when YouTube itself is ad-free. This site cannot override that browser setting.</p></aside>
