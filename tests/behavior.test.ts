@@ -8,7 +8,7 @@ import { SettingsScreen, ChoiceScreen, ConfirmScreen } from '../src/screens/sett
 import { BrickScreen } from '../src/screens/brick';
 import { ClockScreen } from '../src/screens/clock';
 import { DEFAULTS, loadSettings, normalizeSettings, persist } from '../src/settings';
-import { ICON_PIXELS } from '../src/icons';
+import { icon } from '../src/icons';
 import { DEMO_LIBRARY } from '../src/data';
 
 test('home follows the recovered flat menu, with browser additions kept together', () => {
@@ -120,11 +120,17 @@ test('Brick clearing a board retains score; motion is frame-rate independent', (
   for(let i=0;i<30;i++) a.advance(1/30); for(let i=0;i<120;i++) b.advance(1/120);
   assert.ok(Math.abs(a.ball.x-b.ball.x)<.0001 && Math.abs(a.ball.y-b.ball.y)<.0001);
 });
-test('battery stages retain identical outline and evenly spaced segments', () => {
-  const stages = [ICON_PIXELS.batteryEmpty, ICON_PIXELS.batteryQuarter, ICON_PIXELS.batteryHalf, ICON_PIXELS.batteryThreeQuarters, ICON_PIXELS.batteryFull];
-  for (const [stage, rows] of stages.entries()) {
-    assert.equal(rows.length,10); assert.ok(rows.every(row=>row.length===25)); assert.equal(rows[0], stages[0][0]);
-    for(let segment=0;segment<4;segment++) assert.equal(rows[4].slice(5+segment*4,8+segment*4), segment<stage?'333':'111');
+test('battery stages retain one outline and equally spaced bars', () => {
+  const names = ['batteryEmpty', 'batteryQuarter', 'batteryHalf', 'batteryThreeQuarters', 'batteryFull'] as const;
+  const stages = names.map(name => icon(name));
+  for (const [stage, svg] of stages.entries()) {
+    assert.equal(svg.querySelector('path')!.getAttribute('d'), stages[0].querySelector('path')!.getAttribute('d'));
+    const bars = [...svg.querySelectorAll('rect')]; assert.equal(bars.length, 4);
+    const widths = bars.map(bar => bar.getAttribute('width')); assert.equal(new Set(widths).size, 1);
+    const positions = bars.map(bar => Number(bar.getAttribute('x')));
+    assert.equal(positions[1] - positions[0], positions[2] - positions[1]);
+    assert.equal(positions[2] - positions[1], positions[3] - positions[2]);
+    assert.equal(bars.filter(bar => bar.getAttribute('opacity') === '1').length, stage);
   }
 });
 test('touch transitions render immediately and leave no temporary panes', () => {
@@ -137,4 +143,22 @@ test('empty folders retain a harmless visible row after construction', () => {
   const d = device(); const list = new ListScreen(d, 'Empty', []); d.push(list);
   assert.equal(list.visibleRows.length, 1); assert.equal(list.visibleRows[0].title, '(empty)');
   list.onCenter(); assert.equal(d.current, null); assert.equal(d.top(), list);
+});
+
+for (const Menu of [MainMenuScreen, SettingsScreen]) test(`${Menu.name} clamps at both ends and reverses immediately`, () => {
+  const d = device(); d.current = d.deck.songs[0];
+  const menu = new Menu(d); d.push(menu);
+  menu.moveSel(-1); assert.equal(menu.sel, 0); assert.equal(menu.scrollTop, 0);
+  menu.moveSel(100); const last = menu.visibleRows.length - 1;
+  assert.equal(menu.sel, last);
+  const windowAtEnd = menu.scrollTop;
+  menu.moveSel(1); assert.equal(menu.sel, last); assert.equal(menu.scrollTop, windowAtEnd);
+  menu.moveSel(-1); assert.equal(menu.sel, last - 1);
+  menu.moveSel(-100); assert.equal(menu.sel, 0); assert.equal(menu.scrollTop, 0);
+  menu.moveSel(1); assert.equal(menu.sel, 1);
+});
+test('untraced lists retain wrapping navigation', () => {
+  const menu = new SongsScreen(device(), DEMO_LIBRARY.songs, 'Songs');
+  menu.moveSel(-1); assert.equal(menu.sel, DEMO_LIBRARY.songs.length - 1);
+  menu.moveSel(1); assert.equal(menu.sel, 0);
 });

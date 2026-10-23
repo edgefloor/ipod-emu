@@ -30,7 +30,7 @@ export class MainMenuScreen extends MenuScreen {
       { title: "About", chevron: true, onSelect: () => device.push(new AboutScreen(device)) },
       { title: "Now Playing", chevron: true, visible: () => !!device.current, onSelect: () => device.push(new NowPlayingScreen(device)) },
       { title: "Browser", chevron: true, onSelect: () => device.push(new BrowserScreen(device)) }
-    ]);
+    ], "clamp");
   }
 }
 

@@ -82,7 +82,7 @@ use relative paths so the site works under `/ipod-emu/`.
 | `src/screens/` | Menu selection, library browsing, settings, Now Playing, Clock, and Brick |
 | `src/audio.ts` | Procedural demo playback and separate wheel/button feedback |
 | `src/input.ts` | Pointer capture, wheel gestures, keyboard, and stable mobile sizing |
-| `src/ui.ts`, `src/icons.ts` | LCD rendering, transitions, and firmware-reference icon geometry |
+| `src/ui.ts`, `src/icons.ts` | LCD rendering, transitions, and original SVG icon approximations |
 | `src/integrations/` | Typed MusicKit boundary, library API, playback adapter, and connection dialog |
 | `src/settings.ts`, `src/types.ts` | Validated persistence and shared domain types |
 | `src/data.ts` | Original demo library |
@@ -102,7 +102,7 @@ Songs, and manual Backlight are under **Browser**. Conditional Audio Tour entrie
 are omitted because their activation rules have not been established.
 
 [Evidence and implementation decisions](docs/firmware-findings.md) distinguish
-verified labels, menu order, and pixel patterns from browser approximations.
+verified labels, menu order, and navigation boundaries from browser approximations.
 The app does not execute firmware. Sleep pauses playback once; contrast adjusts
 LCD ink color; startup volume applies at page load. English is the only supported
 language. These behaviors are useful browser choices, not recovered native semantics.
@@ -112,9 +112,9 @@ language. These behaviors are useful browser choices, not recovered native seman
 Inspired by Apple's iPod easter egg and original device interfaces. This is an
 independent simulator, not an Apple product or a firmware emulator. No files
 extracted from Apple's component are included. [Reference notes](docs/reference-notes.md)
-record the initial web-component investigation. Small UI icon pixel patterns
-were transcribed from the supplied firmware analysis; full firmware, extracted
-resource bundles, and diagnostic PNGs are not shipped.
+record the initial web-component investigation. UI icons are original geometric
+SVG approximations informed by the supplied firmware references. Extracted icons,
+pixel grids, firmware, resource bundles, and diagnostic PNGs are not shipped.
 
 The bundled [Chicago Kare](https://github.com/KingDuane/Chicago-Kare) font by
 Duane King is MIT licensed; its [license](assets/fonts/LICENSE) ships with the

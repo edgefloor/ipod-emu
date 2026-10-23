@@ -19,7 +19,7 @@ export abstract class Screen {
 export class MenuScreen extends Screen {
   sel = 0;
   scrollTop = 0;
-  constructor(device: Ipod, public title: string, public rows: MenuRow[]) {
+  constructor(device: Ipod, public title: string, public rows: MenuRow[], private boundary: "wrap" | "clamp" = "wrap") {
     super(device);
   }
 
@@ -62,8 +62,11 @@ export class MenuScreen extends Screen {
   moveSel(step: number) {
     const rows = this.visibleRows;
     if (!rows.length) return;
-    this.sel = (this.sel + step) % rows.length;
-    if (this.sel < 0) this.sel += rows.length;
+    const next = this.boundary === "clamp"
+      ? Math.max(0, Math.min(rows.length - 1, this.sel + step))
+      : ((this.sel + step) % rows.length + rows.length) % rows.length;
+    if (next === this.sel) return;
+    this.sel = next;
     this.scrollTop = this.visibleRange;
     this.render();
   }

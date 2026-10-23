@@ -1,6 +1,6 @@
 # Firmware evidence and implementation decisions
 
-This migration uses the supplied `FINDINGS.md` from the completed static analysis.
+This migration uses the supplied `FINDINGS.md` and `FOLLOWUP.md` from the static analysis.
 It is not a runtime observation of an iPod. The retail firmware version and device
 generation remain unconfirmed. Evidence labels F01–F09 refer to that handoff.
 
@@ -17,20 +17,41 @@ Original size: 2,495,488 bytes. Analysis used Ghidra 12.1.4, ARM:LE:32:v4t.
 | F05 | Menu `-38` at `0x1335d4` | Backlight choices: Off, 1 Sec, 2 Sec, 3 Sec, 5 Sec, Always On. Opening a choice screen selects the current value; committing returns to Settings. |
 | F05 | Menu `-48` at `0x1334f8` | Sleep choices: Off, 5 Minutes, 10 Minutes, 15 Minutes, 30 Minutes, 60 Minutes. |
 | F06 | Menu `-57` at `0x1334ac` | Reset All Settings opens a two-row Cancel / Reset menu, initially selecting Cancel. |
-| F07 | Decoded BMap resources | Small pixel patterns transcribed into `src/icons.ts` and rendered as current-color SVG pixels. |
+| F07 | Decoded BMap resources, used only as visual references | Original geometric SVG approximations in `src/icons.ts`; no decoded pixels or extracted assets. |
 
-The included icon references are repeat `0x2560`, repeat-one `0x2561`, shuffle
-`0x2564`, chevron `0x2565`, five battery stages `0x2573..0x2577`, pause/play
-`0x3314..0x3315`, and speakers `0x3318..0x3319`. All retain the recovered bitmap
-width, height, padding, and pixel values. Gray strengths use a provisional linear
-mapping, not a claim about the physical LCD's gamma. Battery segments have equal
-width and spacing; the displayed full battery remains a simulated indicator.
+The icons are newly authored SVG paths and rectangles. The reference informed
+relative proportions, weight, and symbol meanings, but its pixel grids are not
+included. All five battery stages share one outline and equally sized, equally
+spaced bars. The displayed full battery remains simulated. Repeat-one uses a
+separate drawn numeral; icons inherit the LCD ink and selected-row inverse color.
+
+## Follow-up: navigation, input timing, and preferences
+
+`FOLLOWUP.md` traces the Main Menu and Settings list views through constructor
+`0x57614` to movement handlers `0x85260` and `0x85160`. Their resource flags
+`0x14000a01` include the boundary-clamping bit `0x04000000`. Main Menu and Settings
+therefore stop at both ends, including batched movement. A clamped no-op retains
+the visible window, and reversing moves into the list immediately. Other lists
+retain the prior wrapping behavior because their flags were not established.
+
+The native key mechanism distinguishes down, repeat, one-shot hold, and release,
+with 400 ms repeat delay, 66 ms interval, and 2000 ms hold delay. Screen-specific
+physical-button bindings remain unresolved. No new hold actions or wheel
+acceleration were inferred from these timings.
+
+Native initialization is now established: shuffle/repeat/backlight/sleep/language
+fields are zero, contrast is 63 on a 127 range, startup volume is 128 on a 256
+range, and Clicker is enabled. Script procedure `0x38b` and preference loading
+still need reconciliation before these become final startup/reset defaults.
+Browser defaults therefore remain unchanged. The script immediate `0xffff` is
+unsigned 65535 before tagging; the app's `-1` timer sentinel is a browser convention,
+not a proven firmware storage format.
 
 ## Browser behavior retained or chosen
 
 - The conditional Audio Tour predicates are unresolved. Neither row is shown.
   Now Playing remains visible while a track is selected, as in the earlier app.
-- Factory defaults were not recovered. Existing defaults remain; new contrast
+- Final post-script factory defaults remain unresolved. Existing defaults remain; new contrast
   defaults to the existing ink color, startup volume defaults to last volume,
   and sleep is initially off.
 - Sleep uses a wall-clock deadline and pauses the active player once. It does
@@ -46,8 +67,9 @@ width and spacing; the displayed full battery remains a simulated indicator.
   the simulator's reset policy, not recovered native reset coverage.
 - About reports actual library counts, playback source, and app version. Invented
   hardware capacity and free-space values were removed.
-- Wheel thresholds, wrapping, Now Playing controls, volume-overlay timing, game
-  physics, and desktop transition timing retain the prior browser behavior.
+- Wheel thresholds, Now Playing controls, volume-overlay timing, game physics,
+  and desktop transition timing retain the prior browser behavior. Wrapping is
+  retained only for lists outside the two traced menu definitions.
 - Mobile transitions remain immediate to avoid WebKit compositing flashes.
   The click-wheel capture-transfer fix and persistent silent audio output are retained.
 
@@ -79,4 +101,4 @@ All 370 payloads fit: 36 BMap, 1 LDTm, 8 Menu, 204 Str, 1 TCmd, 54 Type, 66 View
 The TCmd package has 213 procedures; it was not fully decompiled.
 
 Raw firmware, Ghidra projects, diagnostic images, and full resource exports stay
-outside the public build. Only selected small UI patterns are application code.
+outside the public build. The application contains only independently drawn icon approximations.

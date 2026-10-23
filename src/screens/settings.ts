@@ -39,7 +39,7 @@ export class SettingsScreen extends MenuScreen {
       ], device.settings.startupVolume, value => { device.settings.startupVolume = value; persist(device.settings); })) },
       { title: 'Language', value: () => device.settings.language, onSelect: () => device.push(new ChoiceScreen(device, 'Language', [{ label: 'English', value: 'English' }], device.settings.language, () => {})) },
       { title: 'Reset All Settings', chevron: true, onSelect: () => device.push(new ConfirmScreen(device)) }
-    ]);
+    ], "clamp");
   }
 }
 

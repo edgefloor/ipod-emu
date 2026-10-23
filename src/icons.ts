@@ -1,176 +1,72 @@
-/** Pixel geometry transcribed from the supplied firmware reference (F07).
- * Spaces are clear; 1/2/3 are provisional ink strengths, not measured LCD gamma.
- * Only these UI symbols are included. No firmware payload or resource bundle ships.
+/** Original geometric drawings informed by the reference icons' proportions.
+ * These paths are authored for the browser, not decoded or traced bitmap pixels.
+ * All shapes inherit LCD ink, including the selected-row inverse color.
  */
-export const ICON_PIXELS = {
-  repeat: [ // 0x2560
-    "             ",
-    "        32   ",
-    "  333333333  ",
-    " 3      32   ",
-    " 3         3 ",
-    "   23      3 ",
-    "  333333333  ",
-    "   23        ",
-    "             ",
-  ],
-  repeatOne: [ // 0x2561
-    "             ",
-    "        32   ",
-    "  333 33333  ",
-    " 33 33  32   ",
-    " 33 33     3 ",
-    " 33 33     3 ",
-    "  333 33333  ",
-    "             ",
-    "             ",
-  ],
-  shuffle: [ // 0x2564
-    "             ",
-    "         32  ",
-    " 333   33333 ",
-    "    1 3  32  ",
-    "     3       ",
-    "    3 1  32  ",
-    " 333   33333 ",
-    "         32  ",
-    "             ",
-  ],
-  chevron: [ // 0x2565
-    " 3    ",
-    "333   ",
-    " 333  ",
-    "  333 ",
-    "   333",
-    "  333 ",
-    " 333  ",
-    "333   ",
-    " 3    ",
-  ],
-  batteryEmpty: [ // 0x2573
-    "   3333333333333333333   ",
-    "   3                 3   ",
-    "   3 111 111 111 111 3   ",
-    "   3 111 111 111 111 33  ",
-    "   3 111 111 111 111  3  ",
-    "   3 111 111 111 111  3  ",
-    "   3 111 111 111 111 33  ",
-    "   3 111 111 111 111 3   ",
-    "   3                 3   ",
-    "   3333333333333333333   ",
-  ],
-  batteryQuarter: [ // 0x2574
-    "   3333333333333333333   ",
-    "   3                 3   ",
-    "   3 333 111 111 111 3   ",
-    "   3 333 111 111 111 33  ",
-    "   3 333 111 111 111  3  ",
-    "   3 333 111 111 111  3  ",
-    "   3 333 111 111 111 33  ",
-    "   3 333 111 111 111 3   ",
-    "   3                 3   ",
-    "   3333333333333333333   ",
-  ],
-  batteryHalf: [ // 0x2575
-    "   3333333333333333333   ",
-    "   3                 3   ",
-    "   3 333 333 111 111 3   ",
-    "   3 333 333 111 111 33  ",
-    "   3 333 333 111 111  3  ",
-    "   3 333 333 111 111  3  ",
-    "   3 333 333 111 111 33  ",
-    "   3 333 333 111 111 3   ",
-    "   3                 3   ",
-    "   3333333333333333333   ",
-  ],
-  batteryThreeQuarters: [ // 0x2576
-    "   3333333333333333333   ",
-    "   3                 3   ",
-    "   3 333 333 333 111 3   ",
-    "   3 333 333 333 111 33  ",
-    "   3 333 333 333 111  3  ",
-    "   3 333 333 333 111  3  ",
-    "   3 333 333 333 111 33  ",
-    "   3 333 333 333 111 3   ",
-    "   3                 3   ",
-    "   3333333333333333333   ",
-  ],
-  batteryFull: [ // 0x2577
-    "   3333333333333333333   ",
-    "   3                 3   ",
-    "   3 333 333 333 333 3   ",
-    "   3 333 333 333 333 33  ",
-    "   3 333 333 333 333  3  ",
-    "   3 333 333 333 333  3  ",
-    "   3 333 333 333 333 33  ",
-    "   3 333 333 333 333 3   ",
-    "   3                 3   ",
-    "   3333333333333333333   ",
-  ],
-  pause: [ // 0x3314
-    "      333   333     ",
-    "      333   333     ",
-    "      333   333     ",
-    "      333   333     ",
-    "      333   333     ",
-    "      333   333     ",
-    "      333   333     ",
-    "      333   333     ",
-    "      333   333     ",
-    "                    ",
-  ],
-  play: [ // 0x3315
-    "      31            ",
-    "      3331          ",
-    "      333331        ",
-    "      33333331      ",
-    "      333333333     ",
-    "      33333331      ",
-    "      333331        ",
-    "      3331          ",
-    "      31            ",
-    "                    ",
-  ],
-  speakerLoud: [ // 0x3318
-    "     3  3 ",
-    "    33   3",
-    "  3333 3 3",
-    "  3333 3 3",
-    "  3333 3 3",
-    "    33   3",
-    "     3  3 ",
-  ],
-  speaker: [ // 0x3319
-    "     3    ",
-    "    33    ",
-    "  3333    ",
-    "  3333    ",
-    "  3333    ",
-    "    33    ",
-    "     3    ",
-  ],
-} as const;
-export type IconName = keyof typeof ICON_PIXELS;
+const NS = 'http://www.w3.org/2000/svg';
+export type IconName = 'repeat' | 'repeatOne' | 'shuffle' | 'chevron' |
+  'batteryEmpty' | 'batteryQuarter' | 'batteryHalf' | 'batteryThreeQuarters' | 'batteryFull' |
+  'pause' | 'play' | 'speaker' | 'speakerLoud';
+
+type Shape = { tag: 'path' | 'rect'; attributes: Record<string, string | number> };
+const path = (d: string): Shape => ({ tag: 'path', attributes: { d } });
+const line = (d: string, width = 1.5): Shape => ({
+  tag: 'path', attributes: { d, fill: 'none', stroke: 'currentColor', 'stroke-width': width,
+    'stroke-linejoin': 'miter', 'stroke-linecap': 'square' }
+});
+const rect = (x: number, y: number, width: number, height: number, opacity = 1): Shape => ({
+  tag: 'rect', attributes: { x, y, width, height, opacity }
+});
+
+function battery(level: number): Shape[] {
+  return [
+    line('M2.5 1.5H23.5V4H25.5V8H23.5V10.5H2.5Z', 1),
+    // Every stage uses the same outline, four identical bars, and a two-unit gap.
+    ...Array.from({ length: 4 }, (_, i) => rect(4 + i * 5, 3, 3, 6, i < level ? 1 : .18))
+  ];
+}
+
+function repeat(single: boolean): Shape[] {
+  const arrows = [
+    line('M2 6V4Q2 2.5 4 2.5H14'), path('M12 0L16 2.5L12 5Z'),
+    line('M16 6V8Q16 9.5 14 9.5H4'), path('M6 7L2 9.5L6 12Z')
+  ];
+  if (single) arrows.push(path('M7 5L9 3.5H10V8H8.5V5.5L7 6Z'));
+  return arrows;
+}
+
+function drawing(name: IconName): { width: number; height: number; shapes: Shape[] } {
+  const levels = { batteryEmpty: 0, batteryQuarter: 1, batteryHalf: 2, batteryThreeQuarters: 3, batteryFull: 4 };
+  if (name in levels) return { width: 28, height: 12, shapes: battery(levels[name as keyof typeof levels]) };
+  switch (name) {
+    case 'repeat': case 'repeatOne': return { width: 18, height: 12, shapes: repeat(name === 'repeatOne') };
+    case 'shuffle': return { width: 18, height: 12, shapes: [
+      line('M1 3H4L8 7M10 9H14'), line('M1 9H4L10 3H14'),
+      path('M12 0.5L16 3L12 5.5Z M12 6.5L16 9L12 11.5Z')
+    ] };
+    case 'chevron': return { width: 8, height: 12, shapes: [path('M2 0L8 6L2 12L0 10L4 6L0 2Z')] };
+    case 'play': return { width: 20, height: 12, shapes: [path('M6 1L16 6L6 11Z')] };
+    case 'pause': return { width: 20, height: 12, shapes: [rect(5, 1, 3, 10), rect(12, 1, 3, 10)] };
+    case 'speaker': case 'speakerLoud': return { width: 16, height: 12, shapes: [
+      path('M1 4H4L8 1V11L4 8H1Z'),
+      ...(name === 'speakerLoud' ? [line('M10 4Q12 6 10 8M12 1.5Q16 6 12 10.5', 1.2)] : [])
+    ] };
+    default: throw new Error(`Unknown icon: ${name}`);
+  }
+}
+
 export function icon(name: IconName, label?: string): SVGSVGElement {
-  const rows = ICON_PIXELS[name];
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', `0 0 ${rows[0].length} ${rows.length}`);
-  svg.setAttribute('width', String(rows[0].length));
-  svg.setAttribute('height', String(rows.length));
-  svg.setAttribute('shape-rendering', 'crispEdges');
+  const { width, height, shapes } = drawing(name);
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  svg.setAttribute('width', String(width)); svg.setAttribute('height', String(height));
+  svg.setAttribute('fill', 'currentColor');
   svg.classList.add('lcd-icon');
   if (label) { svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', label); }
   else svg.setAttribute('aria-hidden', 'true');
-  for (let y = 0; y < rows.length; y++) {
-    for (let x = 0; x < rows[y].length; x++) {
-      const value = rows[y][x];
-      if (value === ' ') continue;
-      const pixel = document.createElementNS(svg.namespaceURI, 'rect');
-      pixel.setAttribute('x', String(x)); pixel.setAttribute('y', String(y));
-      pixel.setAttribute('width', '1'); pixel.setAttribute('height', '1');
-      pixel.setAttribute('fill', 'currentColor'); pixel.setAttribute('opacity', String(Number(value) / 3));
-      svg.append(pixel);
-    }
+  for (const { tag, attributes } of shapes) {
+    const shape = document.createElementNS(NS, tag);
+    for (const [key, value] of Object.entries(attributes)) shape.setAttribute(key, String(value));
+    svg.append(shape);
   }
   return svg;
 }
