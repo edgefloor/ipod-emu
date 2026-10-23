@@ -17,7 +17,9 @@
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true
+    "noUnusedParameters": true,
+    "jsx": "react-jsx",
+    "allowJs": true
   },
   "include": [
     "src",

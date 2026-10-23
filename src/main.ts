@@ -1,3 +1,4 @@
+import { installBackground } from './background';
 import { setupYouTube } from './integrations/youtube';
 import { installWakeScreen } from './wake';
 import { installAudioDiagnostics } from './audio-diagnostics';
@@ -5,6 +6,7 @@ import { Ipod } from './device';
 import { attachWheel, attachButtons, attachKeyboard, fitDevice } from './input';
 import { setup } from './integrations/music-dialog';
 document.addEventListener("DOMContentLoaded", () => {
+  installBackground();
   fitDevice();
   window.addEventListener("resize", fitDevice);
   const device = new Ipod();

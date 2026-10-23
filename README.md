@@ -186,3 +186,15 @@ On a fresh load, turn the wheel twice before tapping a device button, then use
 **Copy audio trace**. The report contains browser identification, input events,
 audio-context state, clock readings, and feedback requests. It stays in page
 memory and is not sent to a server. The normal URL does not enable diagnostics.
+
+## Interface and background
+
+The welcome panel and connection dialogs share the devices' silver casing and
+LCD colors. The YouTube dialog explains that Safari's Prevent Cross-Site Tracking
+can prevent Premium recognition and cause ads in the embedded player.
+
+The background uses the supplied React Bits CRTWarp component, mounted separately
+from the TypeScript player. It runs at up to 24 fps and 1× pixel density, with
+reduced-motion support, a pause button, and a CSS fallback when WebGL is unavailable.
+The canvas never intercepts device gestures. Third-party notices ship in
+`THIRD_PARTY_NOTICES.txt`.

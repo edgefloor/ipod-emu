@@ -733,20 +733,26 @@ body {
   box-shadow: 0 0 1px 1px #909090;
 }
 
-/* Account setup stays outside the small hardware display. */
-:is(#apple-music, #youtube-dialog) { box-sizing: border-box; width: min(480px, calc(100% - 32px)); max-height: calc(100% - 32px); overflow: auto; padding: 28px; border: 1px solid #c9c9c5; border-radius: 16px; background: #f7f7f3; color: #282a27; box-shadow: 0 24px 80px #0004; font: 14px/1.5 system-ui, sans-serif; }
-:is(#apple-music, #youtube-dialog)::backdrop { background: #15191488; backdrop-filter: blur(6px); }
-.connection-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-:is(#apple-music, #youtube-dialog) h1 { font-size: 24px; letter-spacing: -.6px; margin: 0; }
-:is(#apple-music, #youtube-dialog) label { display: block; font-weight: 600; margin: 24px 0 8px; }
-:is(#apple-music, #youtube-dialog) textarea { box-sizing: border-box; width: 100%; resize: vertical; padding: 12px; border: 1px solid #b7bab2; border-radius: 6px; font: 12px/1.5 ui-monospace, monospace; background: #fff; color: #252923; }
-:is(#apple-music, #youtube-dialog) button { padding: 9px 13px; border: 1px solid #b7bab2; border-radius: 6px; background: #fff; color: #252923; font: inherit; cursor: pointer; }
+/* Silver desktop panels, matching the portable hardware. */
+:is(#apple-music, #youtube-dialog) { width: min(480px, calc(100% - 32px)); max-height: calc(100svh - 40px); overflow: auto; padding: 0 24px 20px; border: 1px solid #777e82; border-radius: 12px; background: linear-gradient(110deg, #e7e9e9, #c9ced0); color: #30383b; box-shadow: inset 0 0 0 2px #f6f7f799, 0 4px 0 #747b80, 0 28px 80px #0009; font: 13px/1.6 Arial, Helvetica, sans-serif; }
+:is(#apple-music, #youtube-dialog)::backdrop { background: #0c1115b8; backdrop-filter: blur(4px); }
+.connection-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 -24px 20px; padding: 12px 18px; border-bottom: 1px solid #929a9f; background: linear-gradient(#f2f3f3, #bdc3c7); box-shadow: 0 1px #fff9; }
+:is(#apple-music, #youtube-dialog) h1 { font: 20px/1.3 "Chicago Kare", monospace; margin: 0; }
+.connection-kicker { font: 10px/1.5 ui-monospace, monospace; letter-spacing: .13em; color: #56646b; }
+.connection-intro { font-size: 20px; line-height: 1.3; letter-spacing: -.5px; margin: 8px 0 20px; }
+:is(#apple-music, #youtube-dialog) label { display: block; font-weight: 600; margin: 20px 0 7px; }
+:is(#apple-music, #youtube-dialog) textarea, #youtube-dialog input { box-sizing: border-box; width: 100%; resize: vertical; padding: 12px; border: 1px solid #818d89; border-radius: 3px; font: 16px/1.5 ui-monospace, monospace; background: #e2e8df; color: #303c35; box-shadow: inset 1px 2px 3px #34453824, 0 1px #fff; }
+:is(#apple-music, #youtube-dialog) button { min-height: 40px; padding: 8px 16px; border: 1px solid #858e94; border-radius: 5px; background: linear-gradient(#fbfcfc, #c1c7cb); box-shadow: inset 0 1px #fff, 0 2px 1px #8b9297; color: #29343b; font: inherit; cursor: pointer; touch-action: manipulation; }
+:is(#apple-music, #youtube-dialog) button:active { background: #b3bcc1; box-shadow: inset 0 2px 3px #68778066; }
 :is(#apple-music, #youtube-dialog) button:disabled { opacity: .45; cursor: default; }
-:is(#apple-music, #youtube-dialog) button:focus-visible, :is(#apple-music, #youtube-dialog) textarea:focus-visible { outline: 2px solid #4d6552; outline-offset: 3px; }
-:is(#apple-music, #youtube-dialog) [data-action=connect] { color: #fff; background: #354739; border-color: #354739; }
+:is(#apple-music, #youtube-dialog) :is(button, textarea, input, a):focus-visible { outline: 2px solid #31596b; outline-offset: 3px; }
+:is(#apple-music, #youtube-dialog) :is([data-action=connect], [type=submit]) { color: #f5f8fa; background: linear-gradient(#566e7e, #344b59); border-color: #354955; box-shadow: inset 0 1px #a0b5c2, 0 2px #253640; }
 .connection-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-:is(#apple-music, #youtube-dialog) .connection-note { color: #656a61; font-size: 12px; }
-:is(#apple-music, #youtube-dialog) [role=status] { padding: 12px 0; border-block: 1px solid #d9dcd5; }
+:is(#apple-music, #youtube-dialog) .connection-note { color: #46535b; font-size: 12px; }
+:is(#apple-music, #youtube-dialog) [role=status] { margin-bottom: 0; padding: 12px 0 0; border-top: 1px solid #a7afb2; color: #45535b; font-size: 12px; }
+.connection-advisory { margin: 16px 0; border: 1px solid #a4afa3; border-radius: 3px; padding: 12px 14px; background: #dce3d7; box-shadow: inset 0 1px 3px #53664a15; color: #3e4b3c; font-size: 12px; }
+.connection-advisory strong { font-weight: 600; }
+.connection-advisory p { margin: 4px 0 0; }
 
 .hint--touch { display: none; }
 @media (pointer: coarse), (max-width: 639px) {
@@ -778,22 +784,35 @@ body {
 .adjustment .np__bar { width: 100%; }
 
 /* An intentional first tap, before wheel controls become interactive. */
-.wake-screen { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 24px; background: #131415f5; }
-.wake-card { width: min(100%, 360px); text-align: center; color: #ececea; }
-.wake-eyebrow { color: #979a98; font-size: 13px; letter-spacing: .08em; }
-.wake-card h1 { margin: 16px 0 32px; font-size: clamp(26px, 7vw, 34px); font-weight: 500; letter-spacing: -.04em; }
-#wake-button { border: 1px solid #fff8; border-radius: 999px; background: #eeefec; color: #202220; padding: 15px 32px; font: 500 16px/1.2 system-ui, sans-serif; cursor: pointer; touch-action: manipulation; }
-#wake-button:focus-visible { outline: 2px solid #fff; outline-offset: 5px; }
-.wake-motion { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 28px; font-size: 13px; color: #b1b4b1; }
+.wake-screen { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; overflow: auto; padding: 58px 20px 32px; background: #11171b33; }
+.wake-card { width: min(100%, 440px); text-align: center; color: #303a3f; border: 1px solid #91989b; border-radius: 14px; padding: 5px; background: linear-gradient(115deg, #fafbfb, #bdc4c8 60%, #e4e7e8); box-shadow: inset 0 0 0 2px #fff9, 0 4px 0 #70787c, 0 24px 80px #0009; }
+.panel-titlebar { display: flex; align-items: center; gap: 8px; padding: 12px 14px 15px; text-shadow: 0 1px #fff; font: 13px "Chicago Kare", monospace; }
+.panel-led { width: 6px; height: 6px; border-radius: 50%; background: #74896d; box-shadow: inset 0 1px 2px #35452e, 0 1px #fff; }
+.panel-model { margin-left: auto; font: 8px ui-monospace, monospace; letter-spacing: .1em; color: #606c73; }
+.wake-display { margin: 0 13px; padding: 24px 12px 22px; border: 4px solid #5b6263; border-radius: 7px; background: repeating-linear-gradient(0deg, #44544008 0 1px, transparent 1px 3px), radial-gradient(ellipse at 25% 35%, #e0e6d9, #bcc8b7); box-shadow: 0 1px #fff, inset 0 2px 5px #46544455; color: #404d3d; }
+.welcome-device { width: 55px; height: 80px; margin-bottom: 12px; fill: none; stroke: currentColor; stroke-width: 2; }
+.welcome-play { fill: currentColor; stroke: none; }
+.wake-eyebrow { font: 9px/1.5 ui-monospace, monospace; letter-spacing: .12em; margin: 4px 0 12px; }
+.wake-card h1 { margin: 0 0 13px; font: 25px/1.2 "Chicago Kare", monospace; letter-spacing: -.7px; }
+.wake-description { font: 12px/1.7 Arial, sans-serif; margin: 0; }
+.wake-deck { padding: 24px 14px 10px; }
+#wake-button { min-height: 46px; border: 1px solid #7e898f; border-radius: 7px; background: linear-gradient(#fcfdfd, #bdc6cc); box-shadow: inset 0 1px #fff, 0 3px 0 #78848c, 0 5px 8px #53616b33; color: #2b3b46; padding: 11px 30px; font: 15px "Chicago Kare", monospace; cursor: pointer; touch-action: manipulation; }
+#wake-button span { font: 11px Arial, sans-serif; margin-right: 8px; }
+#wake-button:active { transform: translateY(2px); box-shadow: inset 0 1px 3px #71808a77, 0 1px #78848c; }
+#wake-button:focus-visible { outline: 2px solid #31596b; outline-offset: 5px; }
+.wake-sources { margin: 16px 0 20px; font: 10px/1.4 ui-monospace, monospace; color: #4c5b64; }
+.wake-motion { display: flex; justify-content: center; align-items: center; gap: 7px; padding-top: 14px; border-top: 1px solid #a8b0b4; margin: 0; font-size: 12px; color: #44515a; }
+.wake-motion input { accent-color: #536b58; }
 .wake-motion[hidden] { display: none; }
-#wake-status { min-height: 3em; margin-top: 20px; font-size: 12px; color: #979a98; }
+#wake-status { min-height: 2.6em; margin: 12px 0 0; font: 10px/1.5 Arial, sans-serif; color: #53616a; }
+@media (max-height: 640px) { .wake-screen { place-items: start center; } .welcome-device { height: 48px; } .wake-display { padding-top: 14px; padding-bottom: 14px; } .wake-deck { padding-top: 16px; } }
 .disk-error { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; text-align: center; font-size: 18px; }
 .disk-error svg { width: 44px; height: 38px; fill: none; stroke: currentColor; stroke-width: 2; }
 .disk-error strong { font-weight: normal; }
 .disk-error small { margin-top: 6px; font-size: 15px; }
 
 
-#youtube-dialog input { width: 100%; padding: 12px; background: white; color: #252923; border: 1px solid #b7bab2; border-radius: 6px; font: inherit; }
+
 /* Early-2000s portable CRT: silver cabinet, recessed bezel and side speakers.
    All decorative surfaces stay outside the unobscured YouTube viewport. */
 #youtube-dock {
@@ -838,3 +857,18 @@ body {
 
 .youtube-recovery { margin-top: 8px; }
 .youtube-recovery button:disabled { opacity: .5; cursor: wait; }
+
+/* The canvas is decorative and never receives wheel or player gestures. */
+#ambient-root { display: contents; }
+.ambient-picture { position: absolute; inset: 0; background: radial-gradient(ellipse at 25% 40%, #24333a, #131415 75%); }
+.ambient-picture::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 15%, #13141599 100%); }
+.ambient-toggle { pointer-events: auto; position: fixed; top: max(14px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right)); border: 1px solid #8a9ca03d; border-radius: 4px; padding: 8px 10px; color: #b8c4c9; background: #131a1ed9; font: 10px/1.3 ui-monospace, monospace; cursor: pointer; }
+.ambient-toggle:focus-visible { outline: 2px solid #b7cbd4; outline-offset: 3px; }
+.stage { position: relative; z-index: 1; }
+.hint { color: #9eafb6; text-shadow: 0 1px 3px #000; }
+body:has(#wake-screen) .wake-screen { z-index: 101; }
+/* Keep the pause control reachable above the welcome panel. */
+.ambient-picture { position: fixed; z-index: 0; pointer-events: none; }
+.ambient-toggle { z-index: 102; }
+
+body:has(#wake-screen) .stage { visibility: hidden; }
