@@ -117,3 +117,19 @@ test('mobile device sizing ignores height-only changes but responds to rotation'
   assert.equal(result.initial,result.expanded);
   assert.notEqual(result.initial,result.rotated);
 });
+
+test('first feedback waits until the audio context is running', async () => {
+  const result = await run(`(async () => {
+    let starts=0, release;
+    const resumed=new Promise(resolve=>release=resolve);
+    const node=()=>({connect(){return this;},disconnect(){},gain:{},pan:{},start(){starts++;}});
+    const audio=new AudioEngine({clicker:true,volume:.5});
+    audio.ctx={state:'suspended',currentTime:0,resume:()=>resumed,createBufferSource:node,createGain:node,createStereoPanner:node,destination:{}};
+    audio.playFeedback({},.2,0);
+    const before=starts;
+    audio.ctx.state='running';release();await resumed;await Promise.resolve();
+    return {before,after:starts};
+  })()`);
+  assert.equal(result.before,0);
+  assert.equal(result.after,1);
+});

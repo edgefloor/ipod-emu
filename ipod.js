@@ -78,12 +78,12 @@ class AudioEngine {
     this.onstate = null; // set by the device; fired when playback state settles
   }
 
-  ensureContext() {
+  ensureContext(resume = true) {
     if (!this.ctx) {
       const AC = window.AudioContext ?? window.webkitAudioContext;
       this.ctx = AC ? new AC() : null;
     }
-    if (this.ctx && ["suspended", "interrupted"].includes(this.ctx.state)) this.ctx.resume().catch(() => {});
+    if (resume && this.ctx && ["suspended", "interrupted"].includes(this.ctx.state)) this.ctx.resume().catch(() => {});
     return this.ctx;
   }
 
@@ -95,9 +95,11 @@ class AudioEngine {
     } catch { /* Older browsers retain their default audio session. */ }
     const ctx = this.ensureContext();
     if (!ctx) return;
-    // A silent source primes the output on WebKit without changing the feedback sounds.
+    if (ctx.state === "running" && this.outputPrimed) return;
+    this.outputPrimed = true;
+    // Prime a short output block rather than a single sample while the route starts.
     const source = ctx.createBufferSource();
-    source.buffer = ctx.createBuffer(1, 1, ctx.sampleRate);
+    source.buffer = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * 0.02), ctx.sampleRate);
     source.connect(ctx.destination);
     source.onended = () => source.disconnect();
     source.start();
@@ -151,6 +153,19 @@ class AudioEngine {
   playFeedback(buffer, volume, pan, at) {
     const ctx = this.ctx;
     if (!ctx || !buffer) return;
+    if (ctx.state !== "running") {
+      // Keep only the latest detent while activation is pending, never a burst of old clicks.
+      const pending = { buffer, volume, pan, requestedAt: performance.now() };
+      this.pendingFeedback = pending;
+      ctx.resume().then(() => {
+        if (this.pendingFeedback !== pending) return;
+        this.pendingFeedback = null;
+        if (ctx.state === "running" && performance.now() - pending.requestedAt < 250) {
+          this.playFeedback(buffer, volume, pan);
+        }
+      }).catch(() => {});
+      return;
+    }
     const source = ctx.createBufferSource();
     const gain = ctx.createGain();
     const stereo = ctx.createStereoPanner();
@@ -1553,6 +1568,8 @@ document.addEventListener("DOMContentLoaded", () => {
   fitDevice();
   window.addEventListener("resize", fitDevice);
   const device = new Ipod();
+  // Allocate the context before the first gesture; activation still happens on touch/tap.
+  device.audio.ensureContext(false);
   attachWheel(device);
   attachButtons(device);
   attachKeyboard(device);
@@ -1561,7 +1578,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Retry on activation gestures and after interruptions, not only the first press.
   const unlock = () => device.audio.unlock();
-  for (const type of ["touchstart", "touchend", "pointerup", "click", "keydown"]) {
+  for (const type of ["pointerdown", "touchstart", "touchend", "pointerup", "click", "keydown"]) {
     document.addEventListener(type, unlock, { capture: true, passive: true });
   }
 });
