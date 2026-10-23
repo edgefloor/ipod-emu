@@ -1,0 +1,746 @@
+/* ipod-emu — original artwork, hand-written to observed reference metrics. */
+
+@font-face {
+  font-family: "Chicago Kare";
+  src: url("assets/fonts/ChicagoKare-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --ink: #484647;
+  --chev: #333333;
+  --lcd-unlit-1: #929f99;
+  --lcd-unlit-2: #b3bcb0;
+  --lcd-lit-1: #f0edf9;
+  --lcd-lit-2: #ddd9ed;
+  --lcd-sel-unlit-ink: #b3bcb0;
+  --lcd-sel-lit-ink: #f0edf9;
+  --wheel-bg: #f8f8f8;
+  --wheel-icon: #a3a3a3;
+  --wheel-word: #898989;
+  --device-w: 415px;
+  --screen-w: 273px;
+  --screen-h: 223px;
+  --titlebar-h: 37px;
+  --rows-h: 180px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(1000px 700px at 50% 30%, #232527 0%, #131415 60%, #0b0c0d 100%);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.stage { text-align: center; padding: 24px 0; }
+
+.hint {
+  margin: 170px 0 0;
+  color: #5b5f63;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ---- device ---- */
+
+/* reference size scaled to fit; zoom participates in layout (unlike transform) */
+.ipod-shadow {
+  position: relative;
+  width: var(--device-w);
+  margin: 0 auto;
+  zoom: 0.72;
+}
+@media (min-height: 900px) { .ipod-shadow { zoom: 0.85; } }
+@media (min-height: 1080px) { .ipod-shadow { zoom: 1; } }
+
+/* floor shadow / reflection (cross-browser) */
+.ipod-shadow::before {
+  content: "";
+  position: absolute;
+  height: 200px;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  width: 100%;
+  background: linear-gradient(180deg, #010101 0, rgba(87, 87, 87, 0.89) 5%, rgba(72, 72, 72, 0.41) 17%, transparent 50%);
+  transform: translateY(100%);
+  border-radius: 38px 38px 0 0;
+  opacity: 0.3;
+  box-shadow: 0 -1px 1px 0.5px rgb(112, 112, 112);
+  filter: blur(1px);
+}
+
+.ipod {
+  position: relative;
+  z-index: 2;
+  -webkit-box-reflect: below 4px linear-gradient(180deg, transparent 55%, rgba(0, 0, 0, 0.16) 100%);
+}
+
+.face {
+  position: relative;
+  width: var(--device-w);
+  height: 692px;
+  border: 1px solid transparent;
+  border-radius: 38px;
+  background: linear-gradient(42deg, #e8e8e8f5 0, #ffffff 149%);
+  box-shadow:
+    inset 0 -1px 3px 2px rgba(168, 168, 168, 0.67),
+    inset -1px 0 2px 5px #ffffff,
+    -1px 1px 0 3px rgba(146, 146, 146, 0.47),
+    2px 1px 0 3px #e7e7e7;
+}
+
+/* diagonal sheen bands across the face */
+.face::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(249deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.08) 40% 50%, rgba(255, 255, 255, 0) 52% 76%),
+    linear-gradient(257deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.04) 42% 55%, rgba(255, 255, 255, 0) 58% 76%);
+  background-size: 181% 200%;
+  background-position: 0% 50%;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* hairline rim ticks around the face edge */
+.face::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  padding: 6px;
+  background:
+    conic-gradient(from -23deg at 50% 50%,
+      transparent 0, rgba(255, 255, 255, 0.4) 1%, rgba(255, 255, 255, 0.4) 2%, transparent 2.5%,
+      transparent 5%, rgba(255, 255, 255, 0.4) 5.5%, rgba(255, 255, 255, 0.4) 6%, transparent 8%,
+      transparent 9%, rgba(255, 255, 255, 0.4) 10%, rgba(255, 255, 255, 0.4) 11%, transparent 13%),
+    conic-gradient(from -23deg at 50% 50%,
+      rgba(0, 0, 0, 0.3) 0, rgba(0, 0, 0, 0.3) 10%, rgba(0, 0, 0, 0.1) 20%,
+      rgba(0, 0, 0, 0.45) 57%, rgba(0, 0, 0, 0.2) 70%, rgba(0, 0, 0, 0.2) 95%, rgba(0, 0, 0, 0.2));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ---- screen ---- */
+
+.screen {
+  position: relative;
+  margin: 30px auto 0;
+  width: var(--screen-w);
+  height: var(--screen-h);
+  border-radius: 9px;
+  border: 8px solid #555956;
+  box-sizing: content-box;
+  background-image: linear-gradient(135deg, var(--lcd-unlit-1), var(--lcd-unlit-2));
+  box-shadow: 0 1px 1px #fff, 0 -1px 2px #a3aaa5;
+  color: var(--ink);
+  font-family: "Chicago Kare", "Krungthep", system-ui, sans-serif;
+  font-size: 26px;
+  font-weight: 400;
+  font-synthesis: none;
+  line-height: 1;
+  transition: border-color 160ms ease;
+}
+
+.screen.backlit {
+  --ink: #77717c;
+  --chev: var(--ink);
+  border-color: #55514f;
+}
+
+.lcd {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 2px;
+  background-image: linear-gradient(135deg, var(--lcd-unlit-1), var(--lcd-unlit-2));
+  transition: background-image 160ms ease;
+}
+
+.screen.backlit .lcd {
+  background-image:
+    radial-gradient(ellipse 65% 50% at 3% 50%, #fffdf6 0%, rgba(255, 253, 246, 0.65) 22%, transparent 78%),
+    radial-gradient(ellipse 75% 55% at 18% 88%, rgba(250, 247, 255, 0.8), transparent 80%),
+    radial-gradient(ellipse 85% 85% at 100% 4%, rgba(104, 94, 138, 0.16), transparent 78%),
+    linear-gradient(125deg, var(--lcd-lit-1), var(--lcd-lit-2));
+}
+
+/* Glass reflection and the shadow cast by the inner bezel. */
+.lcd::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.08), transparent 48%);
+  box-shadow: inset 2px 3px 5px rgba(31, 46, 40, 0.28), inset -1px -1px 2px rgba(31, 46, 40, 0.14);
+  opacity: 1;
+  transition: opacity 160ms ease;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.screen.backlit .lcd::before {
+  opacity: 0.8;
+  box-shadow: inset 0 0 0 2px #b0a19c, inset 3px 4px 5px rgba(96, 77, 74, 0.22);
+}
+
+/* Unequal edge-light pools also wash out the ink a little near the lamps. */
+.lcd::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse 38% 32% at -4% 50%, rgba(255, 252, 230, 0.95), transparent 80%),
+    radial-gradient(ellipse 48% 40% at -8% 77%, rgba(250, 247, 255, 0.75), transparent 85%);
+  opacity: 0;
+  transition: opacity 160ms ease;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.screen.backlit .lcd::after { opacity: 0.32; }
+
+/* status bar */
+.statusbar {
+  position: relative;
+  height: var(--titlebar-h);
+  margin: 0 5px;
+  border-bottom: 2px solid var(--ink);
+  text-align: center;
+}
+
+.statusbar__play {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+}
+
+.statusbar__play svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: var(--ink);
+  display: none;
+}
+
+.statusbar__play.playing .icon-play { display: block; }
+.statusbar__play.paused .icon-pause { display: block; }
+
+.statusbar__title {
+  position: absolute;
+  top: calc(50% + 3px);
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: calc(100% - 86px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusbar__battery {
+  position: absolute;
+  top: 50%;
+  right: 5px;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 15px;
+  color: var(--ink);
+}
+
+/* content pane */
+.content {
+  height: calc(100% - var(--titlebar-h) - 2px);
+  margin-top: 1.7px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Keep the stepped glyph outlines; only a trace of LCD ink spread. */
+.content,
+.statusbar {
+  filter: blur(0.12px);
+}
+
+.lcd-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  /* Stationary LCD rows: fine dark seams with a faint bright shoulder.
+     The wider repeat varies their strength without adding moving CRT bands. */
+  background:
+    repeating-linear-gradient(0deg,
+      rgba(38, 43, 54, 0.1) 0 0.7px,
+      rgba(255, 255, 255, 0.12) 0.7px 1.2px,
+      transparent 1.2px 3px),
+    repeating-linear-gradient(0deg,
+      transparent 0 8px, rgba(47, 43, 64, 0.025) 8px 9px),
+    repeating-linear-gradient(90deg,
+      rgba(36, 55, 47, 0.015) 0 0.5px, transparent 0.5px 2px);
+}
+
+/* screen push animation panes */
+.pane {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
+/* virtual scrollbar (drawn; the list itself is windowed, not scrolled) */
+/* Share the lower pixel of the header divider with the scrollbar top border. */
+.content:has(.menu--scroll) { margin-top: -1px; }
+.menu { position: relative; }
+
+/* Two LCD pixels separate the rows from the outlined scrollbar. */
+.menu.menu--scroll { padding-right: 19px; }
+
+.menu-scroll {
+  position: absolute;
+  top: 0;
+  right: 5px;
+  bottom: 0;
+  width: 12px;
+  background: rgba(72, 70, 71, 0.1);
+  border: 2px solid var(--ink);
+  box-sizing: border-box;
+}
+
+.menu-scroll__rail {
+  position: absolute;
+  inset: 1px;
+}
+
+.menu-scroll__thumb {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: var(--ink);
+  box-sizing: border-box;
+}
+
+/* menus */
+.menu {
+  height: var(--rows-h);
+  padding: 0 5px;
+  overflow: hidden;
+  font-size: 26px;
+}
+
+.menu__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  height: calc(var(--rows-h) / 6);
+  padding: 3px 9px 1px;
+  white-space: nowrap;
+}
+
+.menu__row > .label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu__row--selected {
+  background: var(--ink);
+  color: var(--lcd-sel-unlit-ink);
+}
+
+.screen.backlit .menu__row--selected { color: var(--lcd-sel-lit-ink); }
+
+.chev {
+  flex: none;
+  width: 10px;
+  height: 14px;
+  margin-right: 5px;
+  background: var(--chev);
+  clip-path: polygon(0 0, 40% 0, 40% 14%, 60% 14%, 60% 28%, 80% 28%, 80% 42%, 100% 42%, 100% 58%, 80% 58%, 80% 72%, 60% 72%, 60% 86%, 40% 86%, 40% 100%, 0 100%, 0 72%, 20% 72%, 20% 58%, 40% 58%, 40% 42%, 20% 42%, 20% 28%, 0 28%);
+}
+
+.menu__row--selected .chev { background: currentColor; }
+
+.set__value { font-weight: 400; }
+
+/* now playing */
+.np {
+  display: flex;
+  flex-direction: column;
+  height: var(--rows-h);
+  padding: 3px 8px 4px;
+  overflow: hidden;
+}
+
+.np__position {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+  font-size: 20px;
+}
+
+.np__modifiers { font-size: 16px; letter-spacing: 0.06em; }
+
+.np__meta {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding-top: 3px;
+  text-align: center;
+  font-size: 23px;
+  line-height: 1.23;
+}
+
+.np__meta .title,
+.np__meta .artist,
+.np__meta .album {
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.np__meta .artist,
+.np__meta .album { font-weight: 400; }
+
+.np__progress {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 2px 0;
+  text-align: left;
+  margin-top: auto;
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+}
+
+.np__progress > .np__bar { grid-column: 1 / -1; grid-row: 1; }
+.np__time--remaining { text-align: right; }
+
+.np__bar {
+  flex: 1;
+  height: 15px;
+  min-height: 12px;
+  border: 1.5px solid var(--ink);
+  border-radius: 7px;
+  position: relative;
+  overflow: hidden;
+}
+
+.np__bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--ink);
+}
+
+/* volume bar: takes over the scrubber row while the wheel is on volume */
+.np__volume { display: flex; gap: 7px; min-height: 43px; font-size: 20px; }
+
+/* about */
+.about { padding: 6px 12px; font-size: 20px; }
+.about dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; margin: 0; }
+.about dt { font-weight: 700; }
+.about dd { margin: 0; justify-self: end; font-weight: 400; }
+
+/* confirm */
+.confirm { padding: 52px 10px 0; text-align: center; }
+.confirm p { margin: 0 0 14px; }
+.confirm .btns { display: flex; gap: 12px; justify-content: center; }
+.confirm .btn {
+  border: 2px solid var(--ink);
+  padding: 1px 14px;
+  border-radius: 4px;
+}
+.confirm .btn--sel { background: var(--ink); color: var(--lcd-sel-unlit-ink); }
+.screen.backlit .confirm .btn--sel { color: var(--lcd-sel-lit-ink); }
+
+/* message */
+.msg { padding: 12px 12px; text-align: center; font-size: 20px; line-height: 1.25; }
+
+/* brick */
+.statusbar__title--game {
+  display: flex;
+  justify-content: space-between;
+  width: calc(100% - 110px);
+  max-width: none;
+}
+
+.clock {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+.clock__time { font: 50px/1 Arial, sans-serif; font-variant-numeric: tabular-nums; }
+.clock__date { font-size: 24px; }
+
+.brick-field {
+  position: relative;
+  height: 100%;
+  font-size: 20px;
+}
+
+.brick-paddle {
+  position: absolute;
+  top: 96%;
+  width: 14%;
+  height: 3%;
+  background: var(--ink);
+}
+
+.brick-ball {
+  position: absolute;
+  width: 2%;
+  height: 2%;
+  transform: translate(-50%, -50%);
+  background: var(--ink);
+}
+
+.brick-block {
+  position: absolute;
+  background: var(--ink);
+}
+
+.brick-message { position: absolute; inset: 42% 12px auto; text-align: center; font-size: 22px; }
+
+/* ---- click wheel ---- */
+
+.wheel {
+  position: relative;
+  top: 30px;
+  margin: 0 auto;
+  width: 350px;
+  height: 350px;
+  border-radius: 50%;
+  background-color: var(--wheel-bg);
+  box-shadow:
+    inset -16px 29px 11px 15px #f4f4f4,
+    inset 8px -7px 34px -15px rgba(137, 137, 137, 0.8),
+    0 0 0 2px rgba(135, 135, 135, 0.38),
+    -4px 6px 10px 0 rgba(131, 131, 131, 0.23),
+    0 0 1px 3px rgba(72, 72, 72, 0.10),
+    0 -1px 1px 2px rgba(168, 168, 168, 0.67),
+    0 0 1px 3px #e9e9e8,
+    -2px 3px 1px 2px #d7d7d7,
+    -1px 1px 0 3px rgba(229, 229, 229, 0.47);
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* soft ring of light caught by the rim */
+.wheel::after {
+  content: "";
+  position: absolute;
+  top: 15px;
+  left: 20.5px;
+  width: 318px;
+  height: 317px;
+  padding: 4px;
+  border-radius: 50%;
+  background-image: conic-gradient(from 345deg at center,
+    transparent 0, transparent 16%, rgb(255, 255, 255) 22%, transparent 30%,
+    transparent 67%, rgb(255, 255, 255) 72%, transparent 80%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  filter: blur(12px);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* while dragging, pie buttons stop hit-testing so the drag owns the pointer */
+.wheel.dragging .wheel__btn { pointer-events: none; }
+
+.wheel__btn {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* the device is keyboard-driven globally; a per-button ring is visual noise */
+.wheel__btn:focus,
+.wheel__btn:focus-visible {
+  outline: none;
+}
+
+.wheel__btn svg {
+  display: block;
+  pointer-events: none;
+}
+
+/* no clip-path here: the label must not be clipped. The hit area is still
+   the top wedge — later siblings claim the other wedges and the center. */
+.wheel__btn--menu {
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 9.5px;
+}
+
+.wheel__btn--menu svg { width: 136px; height: auto; }
+
+.wheel__btn--menu .menu-word {
+  font-family: Arial, sans-serif;
+  font-weight: 700;
+  font-size: 55px;
+  fill: var(--wheel-word);
+}
+
+/* glossy blob at the top of the ring */
+.wheel__btn--menu::after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  width: 108px;
+  height: 34px;
+  background: radial-gradient(ellipse at 50% -189%, rgba(255, 255, 255, 0.9) 57%, rgba(255, 255, 255, 0.07) 75.6%);
+  transform: translate(-50%);
+  border-radius: 35%;
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+.wheel__btn--prev {
+  justify-content: flex-start;
+  align-items: center;
+  padding-left: 6px;
+  clip-path: polygon(50% 50%, 0% 0%, 0% 100%);
+}
+
+.wheel__btn--next {
+  justify-content: flex-end;
+  align-items: center;
+  padding-right: 6px;
+  clip-path: polygon(50% 50%, 100% 0%, 100% 100%);
+}
+
+.wheel__btn--play {
+  justify-content: center;
+  align-items: flex-end;
+  padding-bottom: 12px;
+  clip-path: polygon(50% 50%, 0% 100%, 100% 100%);
+}
+
+.wheel__btn--prev svg,
+.wheel__btn--next svg,
+.wheel__btn--play svg {
+  fill: var(--wheel-icon);
+}
+
+.wheel__btn:active svg { opacity: 0.85; scale: 0.97; }
+
+/* the X seam between the four pie buttons */
+.wheel__dividers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 50%;
+}
+
+.wheel__dividers::before,
+.wheel__dividers::after {
+  position: absolute;
+  top: 0;
+  width: 0;
+  height: 100%;
+  content: "";
+  border: 1px solid #888888;
+}
+
+.wheel__dividers::before { left: 49.7%; transform: rotate(135deg); }
+.wheel__dividers::after { left: 50%; transform: rotate(45deg); }
+
+/* inner disc */
+.wheel__disc {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 79%;
+  height: 79%;
+  transform: translate(-50%, -50%);
+  background-image: radial-gradient(circle at 130% -100%, #eaeaea, #f6f6f6);
+  border: 1.5px solid #898d89;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.7),
+    1px -2px 5px rgba(88, 94, 88, 0.2),
+    0 1px 1px rgba(255, 255, 255, 0.8);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* select button */
+.wheel__btn--select {
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  width: 28.6%;
+  height: 28.6%;
+  transform: translate(-50%, -50%) rotate(35deg);
+  background:
+    radial-gradient(ellipse closest-side at 50% 30%, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.2) 72%, transparent 80.6%),
+    radial-gradient(farthest-side at -9% 209%, rgba(22, 22, 22, 0.19) 0%, rgba(250, 250, 250, 0.93));
+  border: 2px solid #9f9f9f;
+  border-radius: 50%;
+  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+  z-index: 1;
+}
+
+.wheel__btn--select:active {
+  transform: translate(-50%, -50%) rotate(35deg) scale(0.98);
+  box-shadow: 0 0 1px 1px #909090;
+}
+
+/* Account setup stays outside the small hardware display. */
+#apple-music { box-sizing: border-box; width: min(480px, calc(100% - 32px)); max-height: calc(100% - 32px); overflow: auto; padding: 28px; border: 1px solid #c9c9c5; border-radius: 16px; background: #f7f7f3; color: #282a27; box-shadow: 0 24px 80px #0004; font: 14px/1.5 system-ui, sans-serif; }
+#apple-music::backdrop { background: #15191488; backdrop-filter: blur(6px); }
+.connection-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+#apple-music h1 { font-size: 24px; letter-spacing: -.6px; margin: 0; }
+#apple-music label { display: block; font-weight: 600; margin: 24px 0 8px; }
+#apple-music textarea { box-sizing: border-box; width: 100%; resize: vertical; padding: 12px; border: 1px solid #b7bab2; border-radius: 6px; font: 12px/1.5 ui-monospace, monospace; background: #fff; color: #252923; }
+#apple-music button { padding: 9px 13px; border: 1px solid #b7bab2; border-radius: 6px; background: #fff; color: #252923; font: inherit; cursor: pointer; }
+#apple-music button:disabled { opacity: .45; cursor: default; }
+#apple-music button:focus-visible, #apple-music textarea:focus-visible { outline: 2px solid #4d6552; outline-offset: 3px; }
+#apple-music [data-action=connect] { color: #fff; background: #354739; border-color: #354739; }
+.connection-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+#apple-music .connection-note { color: #656a61; font-size: 12px; }
+#apple-music [role=status] { padding: 12px 0; border-block: 1px solid #d9dcd5; }

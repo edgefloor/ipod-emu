@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ipod-emu — classic iPod simulator</title>
+  <meta name="description" content="A classic iPod simulator with a scroll wheel, demo music, Brick, and optional Apple Music playback.">
+  <meta name="theme-color" content="#131415">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="stage">
+    <!-- Original artwork, drawn in "plain" HTML/CSS + inline SVG. -->
+    <div class="ipod-shadow">
+      <div class="ipod" id="ipod">
+        <div class="face">
+          <div class="screen" id="screen">
+            <div class="lcd" id="lcd">
+              <!-- status bar -->
+              <div class="statusbar" id="statusbar">
+                <span class="statusbar__play" id="statusbar-play" aria-hidden="true">
+                  <svg class="icon-play" viewBox="0 0 24 24"><path d="M5 4l14 8-14 8z" /></svg>
+                  <svg class="icon-pause" viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z" /></svg>
+                </span>
+                <span class="statusbar__title" id="statusbar-title">iPod</span>
+                <!-- Decorative full battery, as on the reference emulator. -->
+                <svg class="statusbar__battery" viewBox="0 0 32 16" aria-hidden="true">
+                  <path d="M1 0H27L28 1V5H31V11H28V15L27 16H1L0 15V1Z M2 2V14H26V2Z" fill="currentColor" fill-rule="evenodd" />
+                  <g fill="currentColor">
+                    <rect x="4" y="3.5" width="4" height="9" />
+                    <rect x="9.5" y="3.5" width="4" height="9" />
+                    <rect x="15" y="3.5" width="4" height="9" />
+                    <rect x="20.5" y="3.5" width="4" height="9" />
+                  </g>
+                </svg>
+              </div>
+              <!-- dynamic content -->
+              <div class="content" id="content"></div>
+              <div class="lcd-grid" aria-hidden="true"></div>
+            </div>
+          </div>
+
+          <!-- click wheel: 4 pie-slice buttons + disc + select -->
+          <div class="wheel" id="wheel">
+            <button class="wheel__btn wheel__btn--menu" id="btn-menu" data-testid="wheel-menu" aria-label="Menu">
+              <svg width="400" height="150" viewBox="0 0 400 150" aria-hidden="true">
+                <path id="menu-arc" fill="none" stroke="none" d="M31.2 97.5S92.8 41.2 200 41.2c121.8 0 168.8 56.3 168.8 56.3" />
+                <text class="menu-word"><textPath href="#menu-arc" startOffset="112">menu</textPath></text>
+              </svg>
+            </button>
+            <button class="wheel__btn wheel__btn--prev" id="btn-prev" data-testid="wheel-prev" aria-label="Previous track">
+              <!-- wide low-profile glyphs, bar on the outer edge -->
+              <svg width="23" height="12" viewBox="0 0 23 12" aria-hidden="true" style="rotate:180deg"><path d="M9.6 5.6 0 11.2V0zM19.2 5.6 9.6 11.2V0zM19.2 0H23v11.3h-3.8z" /></svg>
+            </button>
+            <button class="wheel__btn wheel__btn--next" id="btn-next" data-testid="wheel-next" aria-label="Next track">
+              <svg width="23" height="12" viewBox="0 0 23 12" aria-hidden="true"><path d="M9.6 5.6 0 11.2V0zM19.2 5.6 9.6 11.2V0zM19.2 0H23v11.3h-3.8z" /></svg>
+            </button>
+            <button class="wheel__btn wheel__btn--play" id="btn-play" data-testid="wheel-play" aria-label="Play or pause">
+              <svg width="24" height="12" viewBox="0 0 24 12" aria-hidden="true"><path d="M9.6 5.6 0 11.2V0zM19.6 0h3.8v11.3h-3.8zM13.8 0h3.8v11.3h-3.8z" /></svg>
+            </button>
+            <div class="wheel__dividers" aria-hidden="true"></div>
+            <div class="wheel__disc" id="wheel-ring" aria-hidden="true"></div>
+            <button class="wheel__btn wheel__btn--select" id="btn-select" data-testid="wheel-select" aria-label="Select"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="hint">Drag the wheel &middot; click the buttons &middot; arrows / space / enter</p>
+  </main>
+  <dialog id="apple-music" aria-labelledby="apple-music-title">
+    <div class="connection-heading"><h1 id="apple-music-title">Apple Music</h1><button data-action="close" aria-label="Close Apple Music settings">Close</button></div>
+    <p>Bring your library to this iPod. Configure your developer token, then sign in with Apple.</p>
+    <label for="developer-token">Developer token</label>
+    <textarea id="developer-token" rows="4" spellcheck="false" autocomplete="off" placeholder="Paste your developer JWT"></textarea>
+    <p class="connection-note">Kept for this session only. Paste the generated token, never your private .p8 key. Apple manages your listener authorization. Full playback requires an eligible Apple Music subscription.</p>
+    <div class="connection-actions"><button data-action="token">Use token</button><button data-action="connect" disabled>Connect Apple Music</button></div>
+    <p role="status" aria-live="polite">Demo music is active.</p>
+    <div class="connection-actions"><button data-action="refresh" disabled>Refresh library</button><button data-action="disconnect" disabled>Disconnect &amp; use demo</button></div>
+  </dialog>
+  <script src="data.js"></script>
+  <script src="apple-music.js"></script>
+  <script src="ipod.js"></script>
+</body>
+</html>

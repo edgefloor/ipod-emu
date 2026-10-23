@@ -1,0 +1,12 @@
+.DS_Store
+node_modules/
+dist/
+coverage/
+*.log
+.colgrep/
+.codegraph/
+.env
+.env.*
+*.p8
+*.pem
+*.key
