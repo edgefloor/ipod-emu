@@ -133,3 +133,23 @@ test('first feedback waits until the audio context is running', async () => {
   assert.equal(result.before,0);
   assert.equal(result.after,1);
 });
+
+test('feedback keeps one silent output source active without starting a song', () => {
+  const result = run(`(() => {
+    let starts=0,stops=0;const sources=[];
+    const audio=new AudioEngine({clicker:true,volume:.5});
+    audio.ctx={state:'running',sampleRate:48000,destination:{},createBuffer:()=>({}),createBufferSource:()=>{const source={connect(){},disconnect(){},start(){starts++;},stop(){stops++;}};sources.push(source);return source;}};
+    audio.unlock();audio.unlock();
+    const loop=sources[0].loop, song=audio.source;
+    audio.releaseOutput?.();
+    return {starts,stops,loop,song};
+  })()`);
+  assert.equal(result.starts,1);
+  assert.equal(result.loop,true);
+  assert.equal(result.song,null);
+  assert.equal(result.stops,1);
+});
+
+test('touch menu transitions render immediately without animated panes', () => {
+  assert.equal(run(`(() => {const old=window.matchMedia;window.matchMedia=()=>({matches:true});let rendered=0;const ui=Object.create(IpodUI.prototype);ui.flushTransition=null;try{ui.slide('push',()=>rendered++);return rendered;}finally{window.matchMedia=old;}})()`),1);
+});

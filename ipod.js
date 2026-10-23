@@ -95,14 +95,24 @@ class AudioEngine {
     } catch { /* Older browsers retain their default audio session. */ }
     const ctx = this.ensureContext();
     if (!ctx) return;
-    if (ctx.state === "running" && this.outputPrimed) return;
-    this.outputPrimed = true;
-    // Prime a short output block rather than a single sample while the route starts.
+    if (this.outputPrimer) return;
+    // Keep WebKit’s output active between millisecond-long feedback sounds.
+    // This buffer is silent and independent of the music source and queue.
     const source = ctx.createBufferSource();
-    source.buffer = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * 0.02), ctx.sampleRate);
+    source.buffer = ctx.createBuffer(1, Math.ceil(ctx.sampleRate), ctx.sampleRate);
+    source.loop = true;
     source.connect(ctx.destination);
-    source.onended = () => source.disconnect();
     source.start();
+    this.outputPrimer = source;
+  }
+
+  releaseOutput() {
+    if (!this.outputPrimer) return;
+    this.outputPrimer.stop();
+    this.outputPrimer.disconnect();
+    this.outputPrimer = null;
+    this.pendingFeedback = null;
+    this.nextClickAt = 0;
   }
 
   /** A hard detent with the original fast decay and less high-frequency ring. */
@@ -396,6 +406,12 @@ class IpodUI {
   slide(direction, renderFn) {
     this.flushTransition?.();
     this.flushTransition = null;
+    // Classic menu changes are immediate on touch devices. Avoid compositing
+    // translated panes inside a zoomed LCD, which can flash black on mobile WebKit.
+    if (window.matchMedia?.("(pointer: coarse), (prefers-reduced-motion: reduce)").matches) {
+      renderFn();
+      return;
+    }
     const oldPane = document.createElement("div");
     while (this.contentEl.firstChild) oldPane.appendChild(this.contentEl.firstChild);
     if (!oldPane.hasChildNodes()) {
@@ -423,7 +439,8 @@ class IpodUI {
       pane.style.transform = `translateX(${to})`;
     }
     this.sliding = true;
-    this.flushTransition = () => {
+    const finish = () => {
+      if (this.flushTransition !== finish) return;
       clearTimeout(timer);
       while (newPane.firstChild) this.contentEl.appendChild(newPane.firstChild);
       oldPane.remove();
@@ -431,9 +448,10 @@ class IpodUI {
       this.sliding = false;
       this.flushTransition = null;
     };
-    newPane.addEventListener("transitionend", () => this.flushTransition?.(), { once: true });
+    this.flushTransition = finish;
+    newPane.addEventListener("transitionend", finish, { once: true });
     // transitionend is not guaranteed (hidden tab pauses transitions)
-    const timer = setTimeout(() => this.flushTransition?.(), 260);
+    const timer = setTimeout(finish, 260);
   }
 
   /** Standard inverted-selection menu rows. Passes rows already windowed. */
@@ -1575,6 +1593,11 @@ document.addEventListener("DOMContentLoaded", () => {
   attachKeyboard(device);
   window.AppleMusic?.setup(device);
   window.ipod = device; // console/test hook
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) device.audio.releaseOutput();
+  });
+  window.addEventListener("pagehide", () => device.audio.releaseOutput());
 
   // Retry on activation gestures and after interruptions, not only the first press.
   const unlock = () => device.audio.unlock();
