@@ -50,7 +50,6 @@ export class YouTubePlayer {
   private requestedVolume: number | null = null;
   private volumeRequestedAt = 0;
   readonly systemVolume = /iPad|iPhone|iPod/.test(window.navigator.userAgent) || (/Macintosh/.test(window.navigator.userAgent) && window.navigator.maxTouchPoints > 1);
-  reveal: () => void = () => {};
   private tracks = new Map<string, Track>();
   private closed = false;
   private timer: ReturnType<typeof setInterval> | undefined;
@@ -102,10 +101,10 @@ export class YouTubePlayer {
     this.embed.setVolume(percent);
     if (percent > 0) this.embed.unMute(); else this.embed.mute();
   }
-  toggle() { if (this.playing) this.embed.pauseVideo(); else { this.reveal(); this.embed.playVideo(); } }
-  step(dir: number) { this.reveal(); if (dir < 0) { if (this.elapsed > 3) this.restart(); else this.embed.previousVideo(); } else this.embed.nextVideo(); }
+  toggle() { if (this.playing) this.embed.pauseVideo(); else { this.embed.playVideo(); } }
+  step(dir: number) { if (dir < 0) { if (this.elapsed > 3) this.restart(); else this.embed.previousVideo(); } else this.embed.nextVideo(); }
   restart() { this.embed.seekTo(0, true); }
-  playAt(index: number) { this.reveal(); this.embed.playVideoAt(index); }
+  playAt(index: number) { this.embed.playVideoAt(index); }
   playId(id: string) {
     const index = this.embed.getPlaylist().indexOf(id);
     if (index >= 0) this.playAt(index);
@@ -135,18 +134,17 @@ export function setupYouTube(device: Ipod) {
   const dock = document.getElementById('youtube-dock')!;
   const notice = dock.querySelector<HTMLElement>('[role=status]')!;
   const fold = dock.querySelector<HTMLButtonElement>('[data-action=fold]')!;
-  const body = dock.querySelector<HTMLElement>('.youtube-body')!;
-  let collapsed = false;
+  const details = dock.querySelector<HTMLElement>('.youtube-details')!;
+  let expanded = false;
   function expand(open: boolean) {
-    collapsed = !open;
-    if (collapsed) embed?.pauseVideo();
-    body.hidden = collapsed;
-    fold.textContent = collapsed ? 'Show player' : 'Collapse';
+    expanded = open;
+    details.hidden = !open;
+    fold.textContent = open ? 'Minimize' : 'Expand';
     fold.setAttribute('aria-expanded', String(open));
-    dock.classList.toggle('youtube-collapsed', collapsed);
+    dock.classList.toggle('youtube-mini', !open);
     fitDevice(true);
   }
-  fold.onclick = () => expand(collapsed);
+  fold.onclick = () => expand(!expanded);
   let generation = 0;
   let embed: Embed | null = null;
   let previous: { current: Track | null; sequence: Track[]; position: number } | null = null;
@@ -162,6 +160,7 @@ export function setupYouTube(device: Ipod) {
     if (previous) Object.assign(device, previous);
     previous = null;
     dock.hidden = true;
+    dock.classList.remove('crt-playing');
     document.body.classList.remove('youtube-active');
     fitDevice(true);
     submit.disabled = false;
@@ -192,7 +191,7 @@ export function setupYouTube(device: Ipod) {
       if (device.player.playing) device.player.toggle();
       device.audio.stop();
       dock.hidden = false;
-      expand(true);
+      expand(false);
       document.body.classList.add('youtube-active');
       fitDevice(true);
       dialog.close();
@@ -214,7 +213,6 @@ export function setupYouTube(device: Ipod) {
                 ? `${title} · ${device.current?.artistName}` : 'Loading track details…';
             });
             device.youtubePlayer = player;
-            player.reveal = () => expand(true);
             player.setVolume(device.settings.volume); player.modes(); player.start();
             device.push(new YouTubePlaylistScreen(device));
             expand(false);
@@ -223,7 +221,7 @@ export function setupYouTube(device: Ipod) {
           onStateChange: event => {
             if (request !== generation || !device.youtubePlayer) return;
             const player = device.youtubePlayer;
-            if (collapsed && (event.data === 1 || event.data === 3)) { player.embed.pauseVideo(); return; }
+            dock.classList.toggle('crt-playing', event.data === 1);
             player.sync();
             if (event.data === 1 && device.top() instanceof YouTubePlaylistScreen) device.push(new NowPlayingScreen(device));
             if (event.data === 0 && device.settings.repeat === 'song') { player.restart(); player.embed.playVideo(); }
@@ -231,11 +229,12 @@ export function setupYouTube(device: Ipod) {
           },
           onError: event => {
             if (request !== generation) return;
+            expand(true);
             notice.textContent = [100, 101, 150].includes(event.data)
               ? 'This video is unavailable or cannot be embedded. Try Next or another playlist.'
               : 'YouTube could not play this playlist. Check that it is public or unlisted and allows embedding.';
           },
-          onAutoplayBlocked: () => { if (request === generation) notice.textContent = 'Tap Play directly in the YouTube player to allow playback.'; }
+          onAutoplayBlocked: () => { if (request === generation) { expand(true); notice.textContent = 'Tap Play directly in the YouTube player to allow playback.'; } }
         }
       });
       status.textContent = 'Playlist loaded. Paste another link to replace it.';

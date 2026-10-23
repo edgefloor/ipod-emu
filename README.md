@@ -76,10 +76,12 @@ Wheel volume accumulates locally while the iframe acknowledges changes and unmut
 when raised. On iPhone/iPad, use the device's volume buttons for YouTube video;
 the LCD shows that instruction instead of a simulated volume adjustment.
 
-The video panel starts collapsed. Selecting a track or pressing Play opens it.
-**Collapse** pauses playback and retains the playlist and position; **Show player**
-expands it without automatically playing. The embed remains visible during playback,
-as required by YouTube's API policies.
+The video plays in a silver, early-2000s-style portable CRT television. Its compact
+view keeps the actual video viewport at 200 × 200 pixels, surrounded by a recessed
+bezel and speaker grilles. **Expand** reveals a larger screen and track details;
+**Minimize** returns to the small TV without interrupting playback. Playlist and
+Input buttons browse tracks and change sources, and the power button stops and
+closes the TV. The casing never overlays or filters YouTube's picture or controls.
 
 For ad-free playback, sign in to a YouTube Premium account on YouTube in the same
 browser. The playlist dialog links there. The embed can only use the session that
@@ -88,11 +90,11 @@ force Premium recognition, or turn ads off. A free signed-in account still has a
 Import opens a browsable playlist with its real name, video titles, and channel
 names fetched directly from YouTube's oEmbed endpoint. Select or Play starts the
 highlighted entry. The dock's **Playlist** button returns to that list, and
-**Change playlist** opens the link field. Long titles scroll in Now Playing unless
+**Input** opens the link field. Long titles scroll in Now Playing unless
 reduced motion is enabled. Metadata loads progressively, with at most four
 requests at once; unavailable metadata is labelled rather than invented.
 
-**Stop & close** ends the YouTube session. Selecting a demo or Apple Music song
+The TV’s **power button** ends the YouTube session. Selecting a demo or Apple Music song
 also switches away. The last successfully loaded playlist link is remembered
 locally for the next visit, but no YouTube requests run until you load it. Background and locked-screen playback are not
 guaranteed by the embedded player.

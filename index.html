@@ -88,12 +88,23 @@
       <p role="status" aria-live="polite">No API key needed. YouTube loads only when you submit a playlist.</p>
     </form>
   </dialog>
-  <section id="youtube-dock" aria-label="YouTube player" hidden>
-    <div class="youtube-heading"><span>YouTube</span><button type="button" data-action="fold" aria-expanded="true" aria-controls="youtube-body">Collapse</button><button type="button" data-action="stop">Stop &amp; close</button></div>
-    <div class="youtube-body" id="youtube-body">
-    <div class="youtube-video"></div>
-    <p class="youtube-track"></p>
-    <div class="youtube-actions"><button type="button" data-action="playlist">Playlist</button><button type="button" data-action="change">Change playlist</button><p role="status" aria-live="polite"></p></div>
+  <section id="youtube-dock" class="youtube-mini" aria-label="YouTube CRT television" hidden>
+    <div class="crt-badge" aria-hidden="true"><span>PORTABLE COLOR</span><span>STEREO</span></div>
+    <div class="crt-display">
+      <div class="crt-speaker" aria-hidden="true"></div>
+      <div class="crt-bezel"><div class="youtube-video"></div></div>
+      <div class="crt-speaker" aria-hidden="true"></div>
+    </div>
+    <div class="crt-controls">
+      <button type="button" data-action="playlist">Playlist</button>
+      <button type="button" data-action="change">Input</button>
+      <button type="button" data-action="fold" aria-expanded="false" aria-controls="youtube-details">Expand</button>
+      <button type="button" data-action="stop" class="crt-power" aria-label="Turn off YouTube TV" title="Stop and close"><span class="crt-led" aria-hidden="true"></span>⏻</button>
+    </div>
+    <div class="youtube-details" id="youtube-details" hidden>
+      <div class="youtube-heading"><span>YouTube</span></div>
+      <p class="youtube-track"></p>
+      <p role="status" aria-live="polite"></p>
     </div>
   </section>
   <script type="module" src="app.js"></script>
