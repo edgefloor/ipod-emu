@@ -171,6 +171,7 @@ export class AudioEngine {
     g.gain.setValueAtTime(0.1, t);
     g.gain.exponentialRampToValueAtTime(0.0001, t + ms / 1000);
     o.connect(g).connect(ctx.destination);
+    o.onended = () => { o.disconnect(); g.disconnect(); };
     o.start(t);
     o.stop(t + ms / 1000 + 0.01);
   }
@@ -271,6 +272,7 @@ export class AudioEngine {
     gain.gain.value = this.volume;
     source.buffer = this.buffer;
     source.connect(gain).connect(ctx.destination);
+    source.onended = () => { source.disconnect(); gain.disconnect(); };
     source.start(0, offset);
     this.source = source;
     this.gain = gain;
@@ -301,6 +303,8 @@ export class AudioEngine {
       this.pausedAt = Math.min(this.elapsed, TRACK_SECONDS - 0.001);
       this.source.stop();
       this.source.disconnect();
+      this.gain?.disconnect();
+      this.gain = null;
       this.source = null;
     } else if (this.buffer && this.pausedAt !== null) {
       this.startAt(this.pausedAt);
@@ -317,6 +321,8 @@ export class AudioEngine {
     if (this.source) {
       try { this.source.stop(); } catch { /* already stopped */ }
       this.source.disconnect();
+      this.gain?.disconnect();
+      this.gain = null;
       this.source = null;
     }
   }

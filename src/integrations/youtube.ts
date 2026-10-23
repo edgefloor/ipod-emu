@@ -2,7 +2,7 @@ import type { Ipod } from '../device';
 import type { Track } from '../types';
 import { NowPlayingScreen } from '../screens/now-playing';
 import { YouTubeMetadataLoader } from './youtube-metadata';
-import { YouTubePlaylistScreen } from '../screens/youtube-playlist';
+import { YouTubePlaylistScreen, showYouTubePlaylist } from '../screens/youtube-playlist';
 import { fitDevice } from '../input';
 
 export function playlistId(input: string): string {
@@ -172,7 +172,7 @@ export function setupYouTube(device: Ipod) {
   };
   try { input.value = localStorage.getItem('ipod-youtube-playlist') || ''; } catch { /* Storage may be unavailable. */ }
   device.openYouTube = () => { dialog.showModal(); };
-  dock.querySelector<HTMLButtonElement>('[data-action=playlist]')!.onclick = () => { if (device.youtubePlayer) device.push(new YouTubePlaylistScreen(device)); };
+  dock.querySelector<HTMLButtonElement>('[data-action=playlist]')!.onclick = () => { if (device.youtubePlayer) showYouTubePlaylist(device); };
   dock.querySelector<HTMLButtonElement>('[data-action=change]')!.onclick = () => device.openYouTube();
   const cancelLoad = () => { if (submit.disabled && !embed) device.closeYouTube(); };
   dialog.addEventListener('cancel', cancelLoad);
@@ -235,7 +235,7 @@ export function setupYouTube(device: Ipod) {
             if (resume) event.target.setLoop(device.settings.repeat === 'all'); else player.modes();
             player.start();
             reload.disabled = false;
-            if (!resume) device.push(new YouTubePlaylistScreen(device));
+            if (!resume) showYouTubePlaylist(device);
             else device.top()?.render();
             expand(Boolean(resume));
             if (resume) notice.textContent = 'Player reloaded. Press Play to continue where you left off.';

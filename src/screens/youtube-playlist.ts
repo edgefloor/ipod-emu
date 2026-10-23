@@ -21,3 +21,13 @@ export class YouTubePlaylistScreen extends MenuScreen {
   }
   onPlay() { this.onCenter(); }
 }
+
+/** The TV's Playlist control returns to its queue rather than nesting another copy. */
+export function showYouTubePlaylist(device: Ipod) {
+  const index = device.stack.findIndex(screen => screen instanceof YouTubePlaylistScreen);
+  if (index < 0) device.push(new YouTubePlaylistScreen(device));
+  else {
+    device.stack.splice(index + 1);
+    device.ui.slide('pop', () => device.top()?.render());
+  }
+}

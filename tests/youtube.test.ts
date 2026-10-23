@@ -87,3 +87,16 @@ test('raising YouTube volume unmutes and zero volume mutes', () => {
   player.setVolume(0); assert.equal(muted, true); assert.equal(player.volume, 0);
   clearTimeout(ipod.dimTimer);
 });
+
+test('returning to the TV playlist does not accumulate playback screens', async () => {
+  const { showYouTubePlaylist } = await import('../src/screens/youtube-playlist');
+  const ipod = device();
+  ipod.youtubePlayer = { playlistName: 'Queue', playId() {}, playing: false } as unknown as YouTubePlayer;
+  ipod.sequence = [{ id: 'one', trackName: 'One', artistName: 'Test', duration: 60 }];
+  for (let i = 0; i < 100; i++) {
+    showYouTubePlaylist(ipod);
+    ipod.top()!.onCenter();
+  }
+  assert.equal(ipod.stack.length, 3);
+  clearTimeout(ipod.dimTimer);
+});

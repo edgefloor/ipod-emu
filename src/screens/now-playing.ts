@@ -8,6 +8,13 @@ export class NowPlayingScreen extends Screen {
   lastPaint = 0;
   private titleId: string | number | null = null;
   private titleSince = 0;
+  private root: HTMLElement | null = null;
+  private signature = '';
+  private titleText: HTMLElement | null = null;
+  private overflow = 0;
+  private measuredWidth = 0;
+  private playbackState: boolean | null = null;
+  private readonly reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   constructor(device: Ipod) {
     super(device);
   }
@@ -54,12 +61,22 @@ export class NowPlayingScreen extends Screen {
   render() {
     const device = this.device;
     const song = device.current;
+    const signature = JSON.stringify([song?.id, song?.trackName, song?.artistName, song?.albumName,
+      device.position, device.sequence.length, device.settings.shuffle, device.settings.repeat,
+      volumeOverlayVisible(device), device.youtubePlayer?.systemVolume]);
+    if (this.root?.parentElement === device.ui.contentEl && this.signature === signature) {
+      this.update();
+      return;
+    }
+    this.signature = signature;
+    this.titleText = null;
     device.ui.setStatusbar("Now Playing");
     device.ui.clear();
     if (!song) {
       const msg = document.createElement("div");
       msg.className = "msg";
       msg.textContent = "Not playing";
+      this.root = msg;
       device.ui.contentEl.appendChild(msg);
       return;
     }
@@ -107,23 +124,57 @@ export class NowPlayingScreen extends Screen {
       np.appendChild(progressRow(device.elapsed, device.duration));
     }
 
+    this.root = np;
     device.ui.contentEl.appendChild(np);
     if (song.id !== this.titleId) { this.titleId = song.id; this.titleSince = performance.now(); }
-    const title = meta.querySelector<HTMLElement>('.title');
-    if (title && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && title.scrollWidth > title.clientWidth) {
-      const overflow = title.scrollWidth - title.clientWidth;
-      const travel = overflow / 20 * 1000;
-      const phase = (performance.now() - this.titleSince) % (travel * 2 + 3000);
-      const offset = phase < 1500 ? 0 : phase < 1500 + travel ? (phase - 1500) / travel * overflow
-        : phase < 3000 + travel ? overflow : overflow - (phase - 3000 - travel) / travel * overflow;
-      title.classList.add('title--scroll');
-      title.style.textAlign = 'left';
-      const text = document.createElement('span');
-      text.textContent = song.trackName;
-      text.style.transform = `translateX(-${Math.round(offset)}px)`;
-      title.replaceChildren(text);
-    }
+    this.update();
   }
+
+  private update() {
+    const device = this.device;
+    if (this.playbackState !== device.player.playing) {
+      this.playbackState = device.player.playing;
+      device.ui.syncChrome();
+    }
+    if (!device.current || !this.root) return;
+    const fill = this.root.querySelector<HTMLElement>('.np__bar-fill');
+    const volume = volumeOverlayVisible(device);
+    if (fill) {
+      const width = `${Math.round(volume ? device.player.volume * 100 : device.duration > 0 ? Math.min(device.elapsed / device.duration, 1) * 100 : 0)}%`;
+      if (fill.style.width !== width) fill.style.width = width;
+    }
+    const times = this.root.querySelectorAll('.np__time');
+    const values = [fmtTime(device.elapsed), `-${fmtTime(Math.max(device.duration - device.elapsed, 0))}`];
+    times.forEach((node, i) => { if (node.textContent !== values[i]) node.textContent = values[i]; });
+    const title = this.root.querySelector<HTMLElement>('.title');
+    if (!title) return;
+    if (!this.titleText || this.measuredWidth !== window.innerWidth) {
+      title.classList.remove('title--scroll');
+      title.style.textAlign = '';
+      title.textContent = device.current.trackName;
+      this.measuredWidth = window.innerWidth;
+      this.overflow = Math.max(0, title.scrollWidth - title.clientWidth);
+      this.titleText = document.createElement('span');
+      this.titleText.textContent = device.current.trackName;
+      title.replaceChildren(this.titleText);
+    }
+    const reduced = this.reducedMotion.matches;
+    if (this.overflow <= 0 || reduced) {
+      if (this.titleText.style.transform) this.titleText.style.transform = '';
+      if (title.classList.contains('title--scroll')) title.classList.remove('title--scroll');
+      if (title.style.textAlign) title.style.textAlign = '';
+      return;
+    }
+    const travel = this.overflow / 20 * 1000;
+    const phase = (performance.now() - this.titleSince) % (travel * 2 + 3000);
+    const offset = phase < 1500 ? 0 : phase < 1500 + travel ? (phase - 1500) / travel * this.overflow
+      : phase < 3000 + travel ? this.overflow : this.overflow - (phase - 3000 - travel) / travel * this.overflow;
+    title.classList.add('title--scroll');
+    title.style.textAlign = 'left';
+    const transform = `translateX(-${Math.round(offset)}px)`;
+    if (this.titleText.style.transform !== transform) this.titleText.style.transform = transform;
+  }
+
 }
 
 function volumeOverlayVisible(device: Ipod) {

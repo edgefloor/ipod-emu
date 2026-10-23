@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import './CRTWarp.css';
 
 const ROOT = 'crt-warp-container';
@@ -331,9 +331,13 @@ const compile = (gl, type, source) => {
 const createProgram = (gl, fragment, names) => {
   const vertex = compile(gl, gl.VERTEX_SHADER, VERTEX);
   const shader = compile(gl, gl.FRAGMENT_SHADER, fragment);
-  if (!vertex || !shader) return null;
+  if (!vertex || !shader) {
+    if (vertex) gl.deleteShader(vertex);
+    if (shader) gl.deleteShader(shader);
+    return null;
+  }
   const program = gl.createProgram();
-  if (!program) return null;
+  if (!program) { gl.deleteShader(vertex); gl.deleteShader(shader); return null; }
   gl.attachShader(program, vertex);
   gl.attachShader(program, shader);
   gl.bindAttribLocation(program, 0, 'aPosition');
@@ -412,6 +416,8 @@ export default function CRTWarp({
   style
 }) {
   const containerRef = useRef(null);
+  const [contextVersion, setContextVersion] = useState(0);
+  const requestRenderRef = useRef(null);
   const ink = useMemo(() => parseColor(color, [0.78, 0.33, 0.97]) ?? [0.78, 0.33, 0.97], [color]);
   const paper = useMemo(() => parseColor(backgroundColor, [0.07, 0.06, 0.09]), [backgroundColor]);
 
@@ -450,6 +456,7 @@ export default function CRTWarp({
   };
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
+  useEffect(() => { requestRenderRef.current?.(); });
 
   useEffect(() => {
     const container = containerRef.current;
@@ -518,6 +525,8 @@ export default function CRTWarp({
       'uPurity'
     ]);
     if (!content || !glowSource || !blur || !display) {
+      [content, glowSource, blur, display].forEach(item => { if (item) gl.deleteProgram(item.program); });
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
       canvas.remove();
       return undefined;
     }
@@ -541,8 +550,8 @@ export default function CRTWarp({
       time: 0,
       clock: 0,
       last: 0,
-      frame: 0,
       raf: 0,
+      timer: 0,
       visible: false,
       introAt: -1,
       flipAt: -1,
@@ -552,8 +561,6 @@ export default function CRTWarp({
       magnet: [0.5, 0.5, 0, 0, 0],
       magnetGoal: 0,
       lost: false,
-      quiet: 0,
-      seen: null
     };
 
     const ensureTargets = () => {
@@ -581,7 +588,6 @@ export default function CRTWarp({
       const height = Math.max(1, Math.round(container.clientHeight * ratio));
       state.pixel = ratio;
       if (width === state.width && height === state.height) return;
-      state.quiet = 0;
       state.width = width;
       state.height = height;
       canvas.width = width;
@@ -699,46 +705,53 @@ export default function CRTWarp({
       draw(null, state.width, state.height);
     };
 
+    // Schedule only real work. A paused/hidden background owns no animation loop.
+    const stop = () => {
+      cancelAnimationFrame(state.raf);
+      clearTimeout(state.timer);
+      state.raf = 0;
+      state.timer = 0;
+      state.last = 0;
+    };
+    const wake = () => {
+      stop();
+      if (state.visible && !document.hidden && !state.lost) state.raf = requestAnimationFrame(tick);
+    };
     const tick = now => {
-      state.raf = requestAnimationFrame(tick);
-      if (!state.visible || document.hidden || state.lost) {
-        state.last = now;
-        return;
-      }
+      state.raf = 0;
+      if (!state.visible || document.hidden || state.lost) return;
       const s = settingsRef.current;
-      const interval = 1000 / s.fps;
-      if (state.last && now - state.last < interval - 1) return;
-      const dt = state.last ? Math.min((now - state.last) / 1000, 0.1) : 1 / 60;
+      const dt = state.last ? Math.min((now - state.last) / 1000, 0.1) : 1 / s.fps;
       state.last = now;
       const reduced = prefersReduced();
-      state.clock += dt;
+      const still = s.paused || reduced;
+      if (!still) {
+        state.clock += dt;
+        state.time += dt * s.speed;
+      }
       if (state.introAt < 0) state.introAt = state.clock;
-      if (!s.paused && !reduced) state.time += dt * s.speed;
-
       const m = state.magnet;
       const omega = TAU / 0.3;
+      // Analytic critically damped spring remains stable at low frame rates.
+      const decay = Math.exp(-omega * dt);
       for (let i = 0; i < 2; i++) {
-        const accel = -omega * omega * (m[i] - state.pointer[i]) - 2 * omega * m[2 + i];
-        m[2 + i] += accel * dt;
-        m[i] += m[2 + i] * dt;
+        const offset = m[i] - state.pointer[i];
+        const velocity = m[2 + i] + omega * offset;
+        m[i] = state.pointer[i] + (offset + velocity * dt) * decay;
+        m[2 + i] = (m[2 + i] - omega * velocity * dt) * decay;
       }
-      const goal = s.mouseReact && !reduced ? state.magnetGoal : 0;
+      const goal = s.mouseReact && !still ? state.magnetGoal : 0;
       m[4] += (goal - m[4]) * (1 - Math.exp(-dt / 0.18));
-
-      const still = s.paused || reduced;
-      const settling =
-        Math.abs(m[4] - goal) > 0.002 ||
-        (m[4] > 0.002 && (Math.abs(m[2]) + Math.abs(m[3]) > 0.0005 || Math.abs(m[0] - state.pointer[0]) > 0.0005));
-      const transient =
-        state.flipAt >= 0 || (s.intro && !reduced && state.clock - state.introAt < INTRO_SECONDS) || settling;
-      if (state.seen !== s || transient || !still) state.quiet = 0;
-      else state.quiet += 1;
-      state.seen = s;
-      if (state.quiet > 90) return;
-
       resize();
       render(dt, reduced);
+      if (!still) state.timer = setTimeout(() => {
+        state.timer = 0;
+        state.raf = requestAnimationFrame(tick);
+      }, Math.max(0, 1000 / s.fps - (performance.now() - now)));
     };
+    requestRenderRef.current = wake;
+    const onVisibility = () => { if (document.hidden) stop(); else wake(); };
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     const local = event => {
       const rect = container.getBoundingClientRect();
@@ -754,6 +767,7 @@ export default function CRTWarp({
     };
 
     const onMove = event => {
+      if (!settingsRef.current.mouseReact || settingsRef.current.paused || prefersReduced()) return;
       const point = local(event);
       if (point.inside) {
         if (state.magnetGoal === 0 && state.magnet[4] < 0.02) {
@@ -783,6 +797,7 @@ export default function CRTWarp({
       if (!point.inside) return;
       if (prefersReduced()) {
         state.channel += 1;
+        wake();
         return;
       }
       if (state.flipAt >= 0) return;
@@ -793,30 +808,39 @@ export default function CRTWarp({
     const onLost = event => {
       event.preventDefault();
       state.lost = true;
-      canvas.hidden = true;
+      canvas.style.display = 'none';
+      stop();
     };
 
+    const onRestored = () => setContextVersion(version => version + 1);
     const visibility = new IntersectionObserver(entries => {
       state.visible = entries.some(entry => entry.isIntersecting);
+      if (state.visible) wake(); else stop();
     });
     visibility.observe(container);
-    const sizes = new ResizeObserver(resize);
+    const sizes = new ResizeObserver(() => { resize(); wake(); });
     sizes.observe(container);
     resize();
     window.addEventListener('pointermove', onMove, { passive: true });
     window.addEventListener('pointerdown', onDown);
     document.documentElement.addEventListener('pointerleave', onLeave);
     canvas.addEventListener('webglcontextlost', onLost);
-    state.raf = requestAnimationFrame(tick);
+    canvas.addEventListener('webglcontextrestored', onRestored);
+    document.addEventListener('visibilitychange', onVisibility);
+    reducedMotion.addEventListener('change', wake);
 
     return () => {
-      cancelAnimationFrame(state.raf);
+      requestRenderRef.current = null;
+      stop();
+      document.removeEventListener('visibilitychange', onVisibility);
+      reducedMotion.removeEventListener('change', wake);
       visibility.disconnect();
       sizes.disconnect();
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerdown', onDown);
       document.documentElement.removeEventListener('pointerleave', onLeave);
       canvas.removeEventListener('webglcontextlost', onLost);
+      canvas.removeEventListener('webglcontextrestored', onRestored);
       state.cells.forEach(target => deleteTarget(gl, target));
       state.glows.forEach(target => deleteTarget(gl, target));
       [content, glowSource, blur, display].forEach(item => gl.deleteProgram(item.program));
@@ -825,7 +849,7 @@ export default function CRTWarp({
       gl.getExtension('WEBGL_lose_context')?.loseContext();
       canvas.remove();
     };
-  }, []);
+  }, [contextVersion]);
 
   return <div ref={containerRef} className={[ROOT, className].filter(Boolean).join(' ')} style={style} />;
 }
