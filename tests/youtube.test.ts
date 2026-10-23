@@ -27,11 +27,33 @@ test('YouTube controls route to the embed and synchronize actual duration and qu
   assert.equal(ipod.duration, 240);
   assert.equal(ipod.current?.id, 'video-second');
   assert.equal(ipod.sequence.length, 2);
+  ipod.current!.trackName = 'Actual track title';
+  ipod.current!.artistName = 'Actual channel';
+  player.sync();
+  assert.equal(ipod.current!.trackName, 'Actual track title', 'playback events must retain loaded metadata');
   player.toggle(); assert.equal(player.playing, true);
   player.toggle(); assert.equal(player.playing, false);
   ipod.stepTrack(-1); assert.equal(time, 0); assert.equal(previous, 0);
   ipod.stepTrack(-1); assert.equal(previous, 1);
   ipod.stepTrack(1); assert.equal(next, 1);
   player.setVolume(2); assert.equal(volume, 100);
+  clearTimeout(ipod.dimTimer);
+});
+
+test('YouTube playlist rows refresh titles without moving selection and select by video ID', async () => {
+  const { YouTubePlaylistScreen } = await import('../src/screens/youtube-playlist');
+  const ipod = device();
+  let selected = '';
+  ipod.youtubePlayer = { playlistName: 'My playlist', playId(id: string) { selected = id; }, playing: false } as unknown as YouTubePlayer;
+  ipod.sequence = [
+    { id: 'one', trackName: 'Loading title…', artistName: 'YouTube', duration: 0 },
+    { id: 'two', trackName: 'Loading title…', artistName: 'YouTube', duration: 0 }
+  ];
+  const screen = new YouTubePlaylistScreen(ipod);
+  ipod.push(screen); screen.moveSel(1);
+  ipod.sequence[1].trackName = 'A real song'; screen.render();
+  assert.equal(screen.sel, 1);
+  assert.equal(screen.rows[1].title, 'A real song');
+  screen.onPlay(); assert.equal(selected, 'two');
   clearTimeout(ipod.dimTimer);
 });

@@ -72,10 +72,16 @@ start from the iPod controls. Private, age-restricted, region-blocked, or
 embedding-disabled videos may not play.
 
 Play/Pause, Next, Previous, volume, shuffle, and repeat control the YouTube player.
-The loaded queue appears in **Playlists → YouTube playlist**. Queue entries use
-numbered labels; video titles remain visible in YouTube's player. **Stop & close**
-ends the YouTube session. Selecting a demo or Apple Music song also switches away.
-Playlist links are not persisted. Background and locked-screen playback are not
+Import opens a browsable playlist with its real name, video titles, and channel
+names fetched directly from YouTube's oEmbed endpoint. Select or Play starts the
+highlighted entry. The dock's **Playlist** button returns to that list, and
+**Change playlist** opens the link field. Long titles scroll in Now Playing unless
+reduced motion is enabled. Metadata loads progressively, with at most four
+requests at once; unavailable metadata is labelled rather than invented.
+
+**Stop & close** ends the YouTube session. Selecting a demo or Apple Music song
+also switches away. The last successfully loaded playlist link is remembered
+locally for the next visit, but no YouTube requests run until you load it. Background and locked-screen playback are not
 guaranteed by the embedded player.
 
 The integration uses the [YouTube IFrame API](https://developers.google.com/youtube/iframe_api_reference).

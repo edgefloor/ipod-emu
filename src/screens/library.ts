@@ -3,6 +3,7 @@ import type { Library, Track } from '../types';
 import { MenuScreen, ListScreen } from './base';
 import { SettingsScreen, AboutScreen } from './settings';
 import { NowPlayingScreen } from './now-playing';
+import { YouTubePlaylistScreen } from './youtube-playlist';
 import { ClockScreen } from './clock';
 import { BrickScreen } from './brick';
 function songsForIds(deck: Library, ids: Array<Track["id"]> = []) {
@@ -19,11 +20,8 @@ function playlistRows(device: Ipod) {
     }
   }));
   if (device.youtubePlayer) rows.unshift({
-    title: "YouTube playlist", chevron: true,
-    onSelect: () => device.push(new ListScreen(device, "YouTube", device.sequence.map((track, index) => ({
-      title: track.trackName,
-      onSelect: () => { device.youtubePlayer?.playAt(index); device.push(new NowPlayingScreen(device)); }
-    }))))
+    title: device.youtubePlayer.playlistName, chevron: true,
+    onSelect: () => device.push(new YouTubePlaylistScreen(device))
   });
   return rows;
 }

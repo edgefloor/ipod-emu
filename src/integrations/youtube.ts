@@ -1,6 +1,8 @@
 import type { Ipod } from '../device';
 import type { Track } from '../types';
 import { NowPlayingScreen } from '../screens/now-playing';
+import { YouTubeMetadataLoader } from './youtube-metadata';
+import { YouTubePlaylistScreen } from '../screens/youtube-playlist';
 import { fitDevice } from '../input';
 
 export function playlistId(input: string): string {
@@ -44,7 +46,42 @@ function loadSDK(): Promise<SDK> {
   return sdkPromise;
 }
 export class YouTubePlayer {
-  constructor(public embed: Embed, private device: Ipod) {}
+  playlistName = 'YouTube playlist';
+  private tracks = new Map<string, Track>();
+  private closed = false;
+  private timer: ReturnType<typeof setInterval> | undefined;
+  constructor(public embed: Embed, private device: Ipod, private playlist = '', private metadata = new YouTubeMetadataLoader(), private changed: () => void = () => {}) {}
+  start() {
+    if (this.playlist) void this.metadata.load(`https://www.youtube.com/playlist?list=${this.playlist}`).then(data => {
+      if (this.closed || !data) return;
+      this.playlistName = data.title;
+      for (const track of this.tracks.values()) track.albumName = data.title;
+      this.refresh();
+    });
+    this.sync();
+    // The embed can populate its playlist after onReady without another state event.
+    this.timer = setInterval(() => this.sync(), 1000);
+  }
+  dispose() { this.closed = true; clearInterval(this.timer); this.metadata.dispose(); }
+  private refresh() {
+    if (this.closed || this.device.youtubePlayer !== this) return;
+    const screen = this.device.top();
+    if (screen instanceof YouTubePlaylistScreen || screen instanceof NowPlayingScreen) screen.render();
+    this.changed();
+  }
+  private track(id: string): Track {
+    const existing = this.tracks.get(id);
+    if (existing) return existing;
+    const track: Track = { id, trackName: 'Loading title…', artistName: 'YouTube', albumName: this.playlistName, duration: 0 };
+    this.tracks.set(id, track);
+    if (this.playlist) void this.metadata.load(`https://www.youtube.com/watch?v=${encodeURIComponent(id)}`).then(data => {
+      if (this.closed) return;
+      track.trackName = data?.title || 'Title unavailable';
+      track.artistName = data?.author || 'YouTube';
+      this.refresh();
+    });
+    return track;
+  }
   get playing() { return this.embed.getPlayerState() === 1; }
   get elapsed() { return this.embed.getCurrentTime() || 0; }
   get duration() { return this.embed.getDuration() || 0; }
@@ -54,13 +91,23 @@ export class YouTubePlayer {
   step(dir: number) { if (dir < 0) { if (this.elapsed > 3) this.restart(); else this.embed.previousVideo(); } else this.embed.nextVideo(); }
   restart() { this.embed.seekTo(0, true); }
   playAt(index: number) { this.embed.playVideoAt(index); }
+  playId(id: string) {
+    const index = this.embed.getPlaylist().indexOf(id);
+    if (index >= 0) this.playAt(index);
+  }
   modes() { this.embed.setLoop(this.device.settings.repeat === 'all'); this.embed.setShuffle(this.device.settings.shuffle); }
   sync() {
+    if (this.closed || this.device.youtubePlayer !== this) return;
     const ids = this.embed.getPlaylist() || [];
-    this.device.sequence = ids.map((id, i): Track => ({ id, trackName: `Video ${i + 1}`, artistName: 'YouTube', albumName: 'Playlist', duration: 0 }));
+    const index = this.embed.getPlaylistIndex();
+    if (ids[index]) this.track(ids[index]); // Prioritize the current title.
+    const changed = ids.join(',') !== this.device.sequence.map(track => track.id).join(',') || index !== this.device.position;
+    this.device.sequence = ids.map(id => this.track(id));
     this.device.position = this.embed.getPlaylistIndex();
     this.device.current = this.device.sequence[this.device.position] || null;
+    if (this.device.current) this.device.current.duration = this.duration;
     this.device.ui.syncChrome();
+    if (changed) this.refresh();
   }
 }
 
@@ -76,9 +123,12 @@ export function setupYouTube(device: Ipod) {
   let embed: Embed | null = null;
   let previous: { current: Track | null; sequence: Track[]; position: number } | null = null;
   let readyTimer: ReturnType<typeof setTimeout> | undefined;
+  const resize = new ResizeObserver(() => { if (!dock.hidden) fitDevice(true); });
+  resize.observe(dock);
   device.closeYouTube = () => {
     generation++;
     clearTimeout(readyTimer);
+    device.youtubePlayer?.dispose();
     embed?.destroy(); embed = null;
     device.youtubePlayer = null;
     if (previous) Object.assign(device, previous);
@@ -89,11 +139,14 @@ export function setupYouTube(device: Ipod) {
     submit.disabled = false;
     device.top()?.render();
   };
+  try { input.value = localStorage.getItem('ipod-youtube-playlist') || ''; } catch { /* Storage may be unavailable. */ }
   device.openYouTube = () => { dialog.showModal(); };
+  dock.querySelector<HTMLButtonElement>('[data-action=playlist]')!.onclick = () => { if (device.youtubePlayer) device.push(new YouTubePlaylistScreen(device)); };
+  dock.querySelector<HTMLButtonElement>('[data-action=change]')!.onclick = () => device.openYouTube();
   const cancelLoad = () => { if (submit.disabled && !embed) device.closeYouTube(); };
   dialog.addEventListener('cancel', cancelLoad);
   dialog.querySelector<HTMLButtonElement>('[data-action=close]')!.onclick = () => { cancelLoad(); dialog.close(); };
-  dock.querySelector<HTMLButtonElement>('button')!.onclick = () => device.closeYouTube();
+  dock.querySelector<HTMLButtonElement>('[data-action=stop]')!.onclick = () => device.closeYouTube();
   form.onsubmit = async event => {
     event.preventDefault();
     let id: string;
@@ -125,17 +178,24 @@ export function setupYouTube(device: Ipod) {
           onReady: event => {
             if (request !== generation) return;
             clearTimeout(readyTimer);
-            const player = new YouTubePlayer(event.target, device);
+            const player = new YouTubePlayer(event.target, device, id, new YouTubeMetadataLoader(), () => {
+              dock.querySelector<HTMLElement>('.youtube-heading span')!.textContent = player.playlistName;
+              const title = device.current?.trackName;
+              dock.querySelector<HTMLElement>('.youtube-track')!.textContent = title && title !== 'Loading title…'
+                ? `${title} · ${device.current?.artistName}` : 'Loading track details…';
+            });
             device.youtubePlayer = player;
-            player.setVolume(device.settings.volume); player.modes(); player.sync();
-            device.push(new NowPlayingScreen(device));
+            player.setVolume(device.settings.volume); player.modes(); player.start();
+            device.push(new YouTubePlaylistScreen(device));
+            try { localStorage.setItem('ipod-youtube-playlist', `https://www.youtube.com/playlist?list=${id}`); } catch { /* Optional convenience. */ }
           },
           onStateChange: event => {
             if (request !== generation || !device.youtubePlayer) return;
             const player = device.youtubePlayer;
             player.sync();
+            if (event.data === 1 && device.top() instanceof YouTubePlaylistScreen) device.push(new NowPlayingScreen(device));
             if (event.data === 0 && device.settings.repeat === 'song') { player.restart(); player.embed.playVideo(); }
-            notice.textContent = event.data === 1 ? 'YouTube · Use the iPod controls or the video player.' : 'YouTube · Tap Play to listen.';
+            notice.textContent = event.data === 1 ? 'Playing' : event.data === 3 ? 'Buffering…' : event.data === 2 ? 'Paused' : 'Choose a track, or tap Play in the video.';
           },
           onError: event => {
             if (request !== generation) return;

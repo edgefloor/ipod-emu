@@ -88,9 +88,10 @@
     </form>
   </dialog>
   <section id="youtube-dock" aria-label="YouTube player" hidden>
-    <div class="youtube-heading"><span>YouTube</span><button type="button">Stop &amp; close</button></div>
+    <div class="youtube-heading"><span>YouTube</span><button type="button" data-action="stop">Stop &amp; close</button></div>
     <div class="youtube-video"></div>
-    <p role="status" aria-live="polite"></p>
+    <p class="youtube-track"></p>
+    <div class="youtube-actions"><button type="button" data-action="playlist">Playlist</button><button type="button" data-action="change">Change playlist</button><p role="status" aria-live="polite"></p></div>
   </section>
   <script type="module" src="app.js"></script>
 </body>

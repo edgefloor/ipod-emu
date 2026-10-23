@@ -174,11 +174,13 @@ export function fitDevice(force: boolean | Event = false) {
     ? document.querySelector("#viewport-size")?.getBoundingClientRect().height || window.innerHeight
     : window.innerHeight;
   mobileViewport = mobile ? { width, height } : null;
+  const youtubeReserve = document.body.classList.contains('youtube-active') && width < 1280
+    ? (document.getElementById('youtube-dock')?.getBoundingClientRect().height || 280) + 16 : 0;
+  document.documentElement.style.setProperty('--youtube-space', `${youtubeReserve}px`);
   const stage = document.querySelector(".stage");
   const padding = stage ? window.getComputedStyle(stage) : null;
   const horizontal = padding ? (parseFloat(padding.paddingLeft) || 0) + (parseFloat(padding.paddingRight) || 0) + 8 : 40;
   const vertical = padding ? (parseFloat(padding.paddingTop) || 0) + (parseFloat(padding.paddingBottom) || 0) : 40;
-  const youtubeReserve = document.body.classList.contains('youtube-active') && width < 1100 ? 260 : 0;
   const reserve = mobile ? vertical + 44 : youtubeReserve + (width >= 640 && height >= 850 ? 220 : 96);
   const scale = Math.max(0.2, Math.min(1, (width - horizontal) / 415, (height - reserve) / 692));
   document.documentElement.style.setProperty("--layout-height", mobile ? `${height}px` : "100svh");

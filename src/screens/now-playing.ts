@@ -6,6 +6,8 @@ import { REPEAT } from '../constants';
 import { fmtTime } from '../dom';
 export class NowPlayingScreen extends Screen {
   lastPaint = 0;
+  private titleId: string | number | null = null;
+  private titleSince = 0;
   constructor(device: Ipod) {
     super(device);
   }
@@ -98,6 +100,21 @@ export class NowPlayingScreen extends Screen {
     }
 
     device.ui.contentEl.appendChild(np);
+    if (song.id !== this.titleId) { this.titleId = song.id; this.titleSince = performance.now(); }
+    const title = meta.querySelector<HTMLElement>('.title');
+    if (title && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && title.scrollWidth > title.clientWidth) {
+      const overflow = title.scrollWidth - title.clientWidth;
+      const travel = overflow / 20 * 1000;
+      const phase = (performance.now() - this.titleSince) % (travel * 2 + 3000);
+      const offset = phase < 1500 ? 0 : phase < 1500 + travel ? (phase - 1500) / travel * overflow
+        : phase < 3000 + travel ? overflow : overflow - (phase - 3000 - travel) / travel * overflow;
+      title.classList.add('title--scroll');
+      title.style.textAlign = 'left';
+      const text = document.createElement('span');
+      text.textContent = song.trackName;
+      text.style.transform = `translateX(-${Math.round(offset)}px)`;
+      title.replaceChildren(text);
+    }
   }
 }
 
