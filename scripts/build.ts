@@ -1,5 +1,6 @@
 import { build } from 'esbuild';
-import { copyFile, mkdir, rm, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { copyFile, mkdir, rm, writeFile, readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -19,5 +20,12 @@ for (const file of publicFiles.filter(file => !['app.js', 'app.css', 'milkdrop.j
   await mkdir(dirname(target), { recursive: true });
   await copyFile(resolve(root, file), target);
 }
+// Tie asset URLs to their contents so returning visitors receive each release.
+let html = await readFile(resolve(destination, 'index.html'), 'utf8');
+for (const file of ['style.css', 'app.css', 'app.js']) {
+  const hash = createHash('sha256').update(await readFile(resolve(destination, file))).digest('hex').slice(0, 12);
+  html = html.replaceAll(`"${file}"`, `"${file}?v=${hash}"`);
+}
+await writeFile(resolve(destination, 'index.html'), html);
 await writeFile(resolve(destination, '.nojekyll'), '');
 console.log(`Built ${publicFiles.length} public files in dist/`);

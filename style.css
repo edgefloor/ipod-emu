@@ -863,56 +863,52 @@ body {
 #ambient-root { display: contents; }
 .ambient-picture { position: absolute; inset: 0; background: radial-gradient(ellipse at 25% 40%, #24333a, #131415 75%); }
 .ambient-picture::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 15%, #13141599 100%); }
-.ambient-toggle { pointer-events: auto; position: fixed; top: max(14px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right)); border: 1px solid #8a9ca03d; border-radius: 4px; padding: 8px 10px; color: #b8c4c9; background: #131a1ed9; font: 10px/1.3 ui-monospace, monospace; cursor: pointer; }
-.ambient-toggle:focus { outline: none; }
+/* Appearance lives below the device in normal flow, never over its face. */
 .stage { position: relative; z-index: 1; }
 .hint { color: #9eafb6; text-shadow: 0 1px 3px #000; }
-body:has(#wake-screen) .wake-screen { z-index: 101; }
-/* Keep the pause control reachable above the welcome panel. */
 .ambient-picture { position: fixed; z-index: 0; pointer-events: none; }
-.ambient-toggle { z-index: 102; }
-
 body:has(#wake-screen) .stage { visibility: hidden; }
-
-:is(#apple-music, #youtube-dialog) button:focus, #wake-button:focus { outline: none; }
-
-/* Background controls stay outside the player and never intercept its gestures. */
-.ambient-controls { position: fixed; z-index: 102; top: max(14px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right)); display: flex; align-items: start; gap: 8px; font: 12px/1.5 Arial, sans-serif; color: #d7e0e3; }
-.ambient-controls .ambient-toggle { position: static; }
-.ambient-settings summary { list-style: none; cursor: pointer; border: 1px solid #8a9ca03d; border-radius: 4px; padding: 7px 10px; background: #131a1ef5; }
-.ambient-settings summary::-webkit-details-marker { display: none; }
-.ambient-settings-panel { position: absolute; right: 0; top: 44px; width: min(300px, calc(100vw - 32px)); max-height: calc(100svh - 100px); overflow: auto; padding: 18px; border: 1px solid #66757d; border-radius: 10px; background: #20292e; box-shadow: 0 12px 32px #0006; }
-.ambient-settings-panel label { display: block; margin-bottom: 6px; }
-.ambient-settings-panel :is(button, select) { width: 100%; min-height: 44px; border: 1px solid #8b9ba3; border-radius: 5px; background: #354c59; color: #fff; padding: 10px; font: inherit; }
-.ambient-settings-panel select { font-size: 16px; }
-.ambient-settings-panel button:focus { outline: none; }
-.ambient-settings-panel button:disabled { opacity: .5; }
-.ambient-settings-panel p { margin: 12px 0 0; }
-.ambient-settings-panel p + button { margin-top: 14px; }
-.milkdrop-canvas { display: block; width: 100%; height: 100%; opacity: .65; }
-.ambient-settings-panel .visualizer-style-label { margin-top: 16px; }
-.ambient-settings-panel .visualizer-credit { margin-top: 5px; color: #afbdc4; font-size: 11px; }
-
-@media (max-width: 639px), (pointer: coarse) {
-  /* fitDevice reads this padding when sizing the player below the controls. */
-  .stage {
-    padding-top: calc(max(14px, env(safe-area-inset-top)) + 44px + 16px);
-    padding-bottom: max(20px, env(safe-area-inset-bottom));
-  }
-  .ambient-controls {
-    left: max(16px, env(safe-area-inset-left));
-    justify-content: flex-end;
-    align-items: center;
-  }
-  .ambient-controls .ambient-toggle,
-  .ambient-settings summary {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 44px;
-    padding: 10px 12px;
-    font: inherit;
-    white-space: nowrap;
-  }
-  .ambient-settings-panel { top: 52px; }
+.ambient-controls { margin: 12px auto 0; font: 14px/1.5 Arial, Helvetica, sans-serif; }
+.appearance-button {
+  min-height: 44px; padding: 8px 18px; border: 1px solid #ffffff26;
+  border-radius: 24px; background: #202427d9; color: #cbd2d5;
+  font: 12px/1.5 Arial, Helvetica, sans-serif; cursor: pointer;
+  box-shadow: inset 0 1px #ffffff0a;
 }
+.appearance-button:hover { background: #303639; color: #fff; }
+.appearance-button:focus-visible { outline: 2px solid #d3dcdf; outline-offset: 4px; }
+.ambient-settings-panel {
+  width: min(400px, calc(100% - 32px)); max-height: calc(100svh - 48px);
+  margin: auto; overflow: auto; padding: 24px; text-align: left;
+  border: 1px solid #fff9; border-radius: 22px; color-scheme: light;
+  background: linear-gradient(145deg, #f8f8f6, #e6e8e7); color: #303436;
+  box-shadow: inset 0 1px #fff, 0 24px 80px #0007;
+  font: 14px/1.5 Arial, Helvetica, sans-serif;
+}
+.ambient-settings-panel::backdrop { background: #080b0dcc; backdrop-filter: blur(8px); }
+.appearance-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.appearance-heading h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -.6px; }
+.ambient-settings-panel .appearance-description { margin: 4px 0 24px; color: #6a7174; }
+.ambient-settings-panel label { display: block; margin: 20px 0 8px; font-size: 12px; font-weight: 600; color: #62696c; }
+.ambient-settings-panel :is(button, select) {
+  width: 100%; min-height: 44px; padding: 10px 14px; border: 1px solid #c2c7c8;
+  border-radius: 12px; background: #ffffffa6; color: #303436; font: inherit; cursor: pointer;
+}
+.ambient-settings-panel select {
+  appearance: none; -webkit-appearance: none; font-size: 16px; padding-right: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' fill='none' stroke='%2362696c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+}
+.ambient-settings-panel .appearance-close { width: 44px; padding: 0; border: 0; border-radius: 50%; background: #dce0df; font-size: 25px; }
+.ambient-settings-panel .ambient-toggle { margin-top: 24px; background: #303638; color: #fff; border-color: #303638; }
+.ambient-settings-panel :is(button, select):focus-visible { outline: 2px solid #54707b; outline-offset: 3px; }
+.ambient-settings-panel button:disabled { opacity: .5; cursor: default; }
+.ambient-settings-panel p { margin: 12px 0 0; color: #62696c; font-size: 13px; }
+.ambient-settings-panel p + button { margin-top: 16px; }
+.ambient-settings-panel .visualizer-credit { margin-top: 5px; font-size: 11px; }
+.milkdrop-canvas { display: block; width: 100%; height: 100%; opacity: .65; }
+/* Match music dialogs to the appearance panel. */
+:is(#apple-music, #youtube-dialog) { border-radius: 22px; background: linear-gradient(145deg, #f8f8f6, #e6e8e7); box-shadow: inset 0 1px #fff, 0 24px 80px #0007; }
+:is(#apple-music, #youtube-dialog)::backdrop { background: #080b0dcc; backdrop-filter: blur(8px); }
+:is(#apple-music, #youtube-dialog) :is(button, input, textarea) { border-radius: 12px; border-color: #c2c7c8; }
+:is(#apple-music, #youtube-dialog) :is([data-action=connect], [type=submit]) { background: #303638; border-color: #303638; }

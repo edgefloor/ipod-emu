@@ -181,7 +181,7 @@ export function fitDevice(force: boolean | Event = false) {
   const padding = stage ? window.getComputedStyle(stage) : null;
   const horizontal = padding ? (parseFloat(padding.paddingLeft) || 0) + (parseFloat(padding.paddingRight) || 0) + 8 : 40;
   const vertical = padding ? (parseFloat(padding.paddingTop) || 0) + (parseFloat(padding.paddingBottom) || 0) : 40;
-  const reserve = mobile ? vertical + 44 : youtubeReserve + (width >= 640 && height >= 850 ? 220 : 96);
+  const reserve = mobile ? vertical + 104 : youtubeReserve + (width >= 640 && height >= 850 ? 280 : 156);
   const scale = Math.max(0.2, Math.min(1, (width - horizontal) / 415, (height - reserve) / 692));
   document.documentElement.style.setProperty("--layout-height", mobile ? `${height}px` : "100svh");
   document.documentElement.style.setProperty("--device-scale", String(scale));

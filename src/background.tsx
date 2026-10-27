@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { createPortal } from 'react-dom';
 import { visualizerStyles, type VisualizerStyle } from './visualizer-styles';
 import type { MilkDrop } from './milkdrop-runtime';
 import CRTWarp from './components/CRTWarp';
 
 function Background() {
+  const panel = useRef<HTMLDialogElement>(null);
   const [mode, setMode] = useState<'crt' | 'milkdrop' | 'off'>('crt');
   const [style, setStyle] = useState<VisualizerStyle>('aurora');
   const styleRef = useRef(style);
@@ -89,12 +91,18 @@ function Background() {
         mouseReact={false} changeOnClick={false} intro={!reduced}
         paused={paused || reduced} dpr={1} fps={24} style={{}} />}
     </div>
-    <div className="ambient-controls" onKeyDown={event => event.stopPropagation()}>
-      {!reduced && mode !== 'off' && <button className="ambient-toggle" type="button" aria-pressed={paused}
-        onClick={() => setPaused(value => !value)}>{paused ? 'Animate background' : 'Pause background'}</button>}
-      <details className="ambient-settings">
-        <summary>Background</summary>
-        <div className="ambient-settings-panel">
+    {createPortal(<div className="ambient-controls" onKeyDown={event => event.stopPropagation()}>
+      <button className="appearance-button" type="button" onClick={() => panel.current?.showModal()}>Appearance</button>
+      <dialog className="ambient-settings-panel" ref={panel} onClick={event => {
+        if (event.target === event.currentTarget) {
+          const box = event.currentTarget.getBoundingClientRect();
+          if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) panel.current?.close();
+        }
+      }} aria-labelledby="appearance-title">
+        <header className="appearance-heading"><h1 id="appearance-title">Appearance</h1>
+          <button className="appearance-close" type="button" aria-label="Close appearance settings" onClick={() => panel.current?.close()}>×</button>
+        </header>
+        <p className="appearance-description">Set the scene behind your music.</p>
           <label htmlFor="background-mode">Visuals</label>
           <select id="background-mode" value={mode} onChange={event => { setMode(event.target.value as typeof mode); setMessage(''); }}>
             <option value="crt">CRT</option><option value="milkdrop">MilkDrop</option><option value="off">Off</option>
@@ -118,9 +126,10 @@ function Background() {
             {reduced && <p>Animation is paused by your reduced-motion preference.</p>}
           </>}
           {message && <p role="status">{message}</p>}
-        </div>
-      </details>
-    </div>
+          {!reduced && mode !== 'off' && <button className="ambient-toggle" type="button" aria-pressed={paused}
+            onClick={() => setPaused(value => !value)}>{paused ? 'Resume animation' : 'Pause animation'}</button>}
+      </dialog>
+    </div>, document.getElementById('appearance-controls')!)}
   </>;
 }
 
