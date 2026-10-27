@@ -4,7 +4,7 @@ import { BACKLIGHT_ORDER, REPEAT_ORDER } from './constants';
 export const SETTINGS_KEY = 'ipod-emu:settings';
 // Browser defaults, not recovered factory defaults.
 export const DEFAULTS: Readonly<Settings> = Object.freeze({
-  shuffle: false, repeat: 'off', backlight: -1, clicker: true, volume: 0.8,
+  shuffle: false, repeat: 'off', backlight: 2, clicker: true, volume: 0.8,
   contrast: 0.5, startupVolume: 'last', language: 'English'
 });
 const unit = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1;

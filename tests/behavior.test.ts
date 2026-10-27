@@ -25,7 +25,7 @@ test('settings and timer orders match the recovered resource definitions', () =>
   settings.sel = 2; settings.onCenter();
   const choices = d.top() as ChoiceScreen<number>;
   assert.deepEqual(choices.rows.map(r => r.title), ['Off','1 Sec','2 Sec','3 Sec','5 Sec','Always On']);
-  assert.equal(choices.sel, 5);
+  assert.equal(choices.sel, 2);
   choices.sel = 0; choices.onCenter();
   assert.equal(d.top(), settings); assert.equal(loadSettings().backlight, 0);
   assert.equal(browser.document.querySelector('#screen')!.classList.contains('backlit'), false);
@@ -62,7 +62,7 @@ test('reset is a Cancel-first list and applies defaults only after confirmation'
 test('settings reject malformed storage and retain valid older preferences', () => {
   assert.deepEqual(normalizeSettings({ volume: -5, repeat: 'garbage', backlight: 999, clicker: 'no', contrast: null }), DEFAULTS);
   assert.equal(normalizeSettings({ clicker: false, volume: .4 }).volume, .4);
-  assert.equal(normalizeSettings(null).backlight, -1);
+  assert.equal(normalizeSettings(null).backlight, 2);
 });
 test('startup volume applies on creation without altering its stored preference', () => {
   device(); persist({ ...DEFAULTS, startupVolume: .25 });

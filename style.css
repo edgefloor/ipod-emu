@@ -892,3 +892,27 @@ body:has(#wake-screen) .stage { visibility: hidden; }
 .milkdrop-canvas { display: block; width: 100%; height: 100%; opacity: .65; }
 .ambient-settings-panel .visualizer-style-label { margin-top: 16px; }
 .ambient-settings-panel .visualizer-credit { margin-top: 5px; color: #afbdc4; font-size: 11px; }
+
+@media (max-width: 639px), (pointer: coarse) {
+  /* fitDevice reads this padding when sizing the player below the controls. */
+  .stage {
+    padding-top: calc(max(14px, env(safe-area-inset-top)) + 44px + 16px);
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+  .ambient-controls {
+    left: max(16px, env(safe-area-inset-left));
+    justify-content: flex-end;
+    align-items: center;
+  }
+  .ambient-controls .ambient-toggle,
+  .ambient-settings summary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px 12px;
+    font: inherit;
+    white-space: nowrap;
+  }
+  .ambient-settings-panel { top: 52px; }
+}
